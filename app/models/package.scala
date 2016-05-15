@@ -86,9 +86,9 @@ package object models {
       }
     }
 
-    implicit val signalQueryFormat: Format[SignalQuery] = {
-      new Format[SignalQuery] {
-        override def reads(json: JsValue): JsResult[SignalQuery] = {
+    implicit val signalQueryFormat: Format[MapQuery] = {
+      new Format[MapQuery] {
+        override def reads(json: JsValue): JsResult[MapQuery] = {
           val qType = (json \ "queryType").as[String] match {
             case "Signal" => QueryType.Signal
             case "AppUsage" => QueryType.AppUsage
@@ -96,10 +96,10 @@ package object models {
           val area = (json \ "area").as[Rectangle]
           val time = (json \ "time").as[Interval]
           val scale = (json \ "scale").as[MapTimeScale]
-          JsSuccess(SignalQuery(qType, scale, area, time))
+          JsSuccess(MapQuery(qType, scale, area, time))
         }
 
-        override def writes(o: SignalQuery): JsValue = ???
+        override def writes(o: MapQuery): JsValue = ???
       }
     }
   }

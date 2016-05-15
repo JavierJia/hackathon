@@ -8,13 +8,13 @@ class DBActorTest extends Specification with TestData {
 
   "DBActor" should {
     "generate a valid aql" in {
-      val aql = DBActor.generateSignalAQL(signalQuery)
+      val aql = DBActor.generateMapAQL(signalQuery)
       println(aql)
       ok
     }
     "test aql query" in {
 
-      val aql = DBActor.generateSignalAQL(signalQuery)
+      val aql = DBActor.generateMapAQL(signalQuery)
       val response =
         s"""[ { "key": "6", "summary": { "cdma": { "strength": -89.40292, "quality": 4.7844253 }, "evdo": { "strength": -98.960556, "quality": 4.982318 }, "gsm": { "strength": -98.77333, "quality": 7.1337366 }, "lte": { "strength": -1.9509822E7, "quality": -1.7567206E7 }, "wcdma": { "strength": 0.0, "quality": 0.0 } } }
 , { "key": "8", "summary": { "cdma": { "strength": -87.28301, "quality": 5.697301 }, "evdo": { "strength": -100.330734, "quality": 7.0229216 }, "gsm": { "strength": -91.06472, "quality": 11.016333 }, "lte": { "strength": -1.26148496E8, "quality": -1.11713352E8 }, "wcdma": { "strength": 0.0, "quality": 0.0 } } }

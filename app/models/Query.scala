@@ -9,7 +9,7 @@ object QueryType extends Enumeration {
 
 case class MapTimeScale(spatial: ChoroplethScale, time: TimeScale)
 
-case class SignalQuery(queryType: QueryType.Value, scale: MapTimeScale, area: Rectangle, time: Interval)
+case class MapQuery(queryType: QueryType.Value, scale: MapTimeScale, area: Rectangle, time: Interval)
 
 case class Rectangle(swLog: Double, swLat: Double, neLog: Double, neLat: Double)
 

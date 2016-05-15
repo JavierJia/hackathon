@@ -7,15 +7,14 @@ import play.api.libs.json._
 import services.AsterixConnection
 
 import scala.concurrent.ExecutionContext
-import scala.util.parsing.json.JSONObject
 
 class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extends Actor with ActorLogging {
 
   import DBActor._
 
   override def receive: Receive = {
-    case query: SignalQuery =>
-      val aql = generateSignalAQL(query)
+    case query: MapQuery =>
+      val aql = generateMapAQL(query)
       val curSender = sender()
       conn.post(aql).map {
         response =>
@@ -63,7 +62,7 @@ object DBActor {
 
   val TimeFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
-  def generateSignalAQL(query: SignalQuery): String = {
+  def generateMapAQL(query: MapQuery): String = {
     val predicate =
       s"""
          |($$t.$TimeField >= datetime("${TimeFormat.print(query.time.getStart)}")

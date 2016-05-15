@@ -23,11 +23,11 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       geojsonData: {},
       polygons: {},
       status: {
-        zoomLevel: 4,
-        logicLevel: 'state'
+        zoomLevel: 10,
+        logicLevel: 'boro'
       },
       styles: {
-        stateStyle: {
+        boroStyle: {
           fillColor: '#f7f7f7',
           weight: 2,
           opacity: 1,
@@ -35,7 +35,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           dashArray: '3',
           fillOpacity: 0.2
         },
-        countyStyle: {
+        neighborStyle: {
           fillColor: '#f7f7f7',
           weight: 1,
           opacity: 1,
@@ -74,22 +74,22 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           Asterix.parameters.queryType = $scope.config.queryType;
           Asterix.isTimeQuery = false;
           if ($scope.status.zoomLevel > 12) {
-            $scope.status.logicLevel = 'county';
+            $scope.status.logicLevel = 'neighbor';
             Asterix.parameters.scale.map = $scope.status.logicLevel;
             Asterix.query(Asterix.parameters);
 
-            if($scope.polygons.statePolygons) {
-              $scope.map.removeLayer($scope.polygons.statePolygons);
-              $scope.map.addLayer($scope.polygons.countyPolygons);
+            if($scope.polygons.boroPolygons) {
+              $scope.map.removeLayer($scope.polygons.boroPolygons);
+              $scope.map.addLayer($scope.polygons.neighborPolygons);
             }
           } else if ($scope.status.zoomLevel <= 12) {
-            $scope.status.logicLevel = 'state';
+            $scope.status.logicLevel = 'boro';
             Asterix.parameters.level = $scope.status.logicLevel;
             Asterix.query(Asterix.parameters);
 
-            if($scope.polygons.countyPolygons) {
-              $scope.map.removeLayer($scope.polygons.countyPolygons);
-              $scope.map.addLayer($scope.polygons.statePolygons);
+            if($scope.polygons.neighborPolygons) {
+              $scope.map.removeLayer($scope.polygons.neighborPolygons);
+              $scope.map.addLayer($scope.polygons.boroPolygons);
             }
           }
         }
@@ -171,26 +171,26 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
     function loadGeoJsonFiles(onEachFeature) {
       $http.get("assets/resources/data/1.geojson")
         .success(function(data) {
-          $scope.geojsonData.state = data;
-          $scope.polygons.statePolygons = L.geoJson(data, {
-            style: $scope.styles.stateStyle,
+          $scope.geojsonData.boro = data;
+          $scope.polygons.boroPolygons = L.geoJson(data, {
+            style: $scope.styles.boroStyle,
             onEachFeature: onEachFeature
           });
-          $scope.polygons.statePolygons.addTo($scope.map);
+          $scope.polygons.boroPolygons.addTo($scope.map);
         })
         .error(function(data) {
-          console.log("Load state data failure");
+          console.log("Load boro data failure");
         });
       $http.get("assets/resources/data/tier2bound.geojson")
         .success(function(data) {
-          $scope.geojsonData.county = data;
-          $scope.polygons.countyPolygons = L.geoJson(data, {
-            style: $scope.styles.countyStyle,
+          $scope.geojsonData.neighbor = data;
+          $scope.polygons.neighborPolygons = L.geoJson(data, {
+            style: $scope.styles.neighborStyle,
             onEachFeature: onEachFeature
           });
         })
         .error(function(data) {
-          console.log("Load county data failure");
+          console.log("Load neighbor data failure");
         });
 
     }
@@ -291,8 +291,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       }
 
       // update count
-      if ($scope.status.logicLevel == "state" && $scope.geojsonData.state) {
-        angular.forEach($scope.geojsonData.state.features, function(d) {
+      if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
+        angular.forEach($scope.geojsonData.boro.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
@@ -303,9 +303,9 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         });
 
         // draw
-        $scope.polygons.statePolygons.setStyle(style);
-      } else if ($scope.status.logicLevel == "county" && $scope.geojsonData.county) {
-        angular.forEach($scope.geojsonData.county.features, function(d) {
+        $scope.polygons.boroPolygons.setStyle(style);
+      } else if ($scope.status.logicLevel == "neighbor" && $scope.geojsonData.neighbor) {
+        angular.forEach($scope.geojsonData.neighbor.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
@@ -315,7 +315,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         });
 
         // draw
-        $scope.polygons.countyPolygons.setStyle(style);
+        $scope.polygons.neighborPolygons.setStyle(style);
       }
       // add legend
       if ($('.legend'))
