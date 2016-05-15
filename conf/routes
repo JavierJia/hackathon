@@ -5,6 +5,8 @@
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
 
+GET     /app                        controllers.HomeController.app
+
 # A web socket
 GET     /ws                         controllers.HomeController.ws
 # An example controller showing how to use dependency injection
