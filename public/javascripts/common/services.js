@@ -44,7 +44,7 @@ angular.module('hackathon.common', [])
 
     ws.onmessage = function(event) {
       $timeout(function() {
-        // console.log(event.data);
+        console.log(event.data);
         asterixService.result = JSON.parse(event.data);
         switch (asterixService.result.dimension) {
           case "map":

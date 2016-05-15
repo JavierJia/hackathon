@@ -6,7 +6,7 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     queryType: "AppUsage",
     width : $(window).width(),
     height: $(window).height()*0.3,
-    fb: "f"
+    fb: "foreground"
   };
 
   $scope.$watch(
@@ -14,6 +14,7 @@ app.controller("AppCtrl", function ($scope, Asterix) {
       return Asterix.appMapResult;
     },
     function (newVal, oldVal) {
+      console.log("&&&&")
       $scope.appMapResult = newVal;
     });
 
