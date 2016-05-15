@@ -10,7 +10,9 @@ import play.api.libs.json.JsValue
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import services.{AsterixConnection, NewYorkGeoGnosis}
+import services.AsterixConnection
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
