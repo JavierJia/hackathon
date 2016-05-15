@@ -243,10 +243,10 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       var getCount = function (data, type) {
         switch (type) {
-          case "b":
+          case "background":
             return data.b.count;
             break;
-          case "f":
+          case "foreground":
             return data.f.count;
             break;
         }
@@ -254,10 +254,10 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       var getName = function (data, type) {
         switch (type) {
-          case "b":
+          case "background":
             return data.b.app;
             break;
-          case "f":
+          case "foreground":
             return data.f.app;
             break;
         }
@@ -265,13 +265,13 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       var getIconUrl = function (data, type) {
         switch (type) {
-          case "b":
+          case "background":
             if(data.b.icon != "NULL")
               return "http:"+data.b.icon;
             else
               return "http://www.androidpolice.com/wp-content/themes/ap2/ap_resize/ap_resize.php?src=http%3A%2F%2Fwww.androidpolice.com%2Fwp-content%2Fuploads%2F2015%2F03%2Fnexus2cee_an-150x150.png&w=150&h=150&zc=3";
             break;
-          case "f":
+          case "foreground":
             if(data.f.icon != "NULL")
               return "http:"+data.f.icon;
             else
@@ -328,7 +328,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
         for(var key in $scope.neighborIcon) {
           if($scope.neighborIcon.hasOwnProperty(key)) {
-            console.log($scope.map.hasLayer($scope.neighborIcon[key]))
+            console.log($scope.neighborIcon[key])
             if ($scope.map.hasLayer($scope.neighborIcon[key])) {
               $scope.map.removeLayer($scope.neighborIcon[key]);
             }
@@ -341,7 +341,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id) {
               $scope.boroIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
-              $scope.addLayer(L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb)));
+              L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb));
               d.properties.count = getCount(result[k].summary, $scope.config.fb);
             }
           }
@@ -354,7 +354,6 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       } else if ($scope.status.logicLevel == "neighbor" && $scope.geojsonData.neighbor) {
         for(var key in $scope.boroIcon) {
           if($scope.boroIcon.hasOwnProperty(key)) {
-            console.log($scope.map.hasLayer($scope.boroIcon[key]))
             if ($scope.map.hasLayer($scope.boroIcon[key])) {
               $scope.map.removeLayer($scope.boroIcon[key]);
             }
@@ -366,7 +365,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
           for (var k in result) {
             if (result[k].key == d.properties.id) {
               $scope.neighborIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
-              $scope.map.addLayer(L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb)));
+              L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb));
               d.properties.count = getCount(result[k].summary, $scope.config.fb);
             }
           }

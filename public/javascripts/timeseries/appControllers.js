@@ -10,27 +10,39 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
       var parseDate = d3.time.format("%Y-%m-%d %H").parse;
       angular.forEach(result, function (value, key) {
         key = parseDate(value.key);
+        console.log(value.summary)
         switch (type) {
-          case "strength":
+          case "foreground":
             $scope.resultArray.push(
               {
                 'time':key,
-                'cdma':value.summary.cdma.strength,
-                'evdo': value.summary.evdo.strength,
-                'gsm': value.summary.gsm.strength,
-                'lte': value.summary.lte.strength,
-                'wcdma': value.summary.wcdma.strength
+                'Chrome Browser - Google' :value.summary['Chrome Browser - Google'].f,
+                'Facebook': value.summary['Facebook'].f,
+                'Gmail': value.summary['Gmail'].f,
+                'Google Play Store': value.summary['Google Play Store'].f,
+                'Maps': value.summary['Maps'].f,
+                'Instagram': value.summary['Instagram'].f,
+                'YouTube': value.summary['YouTube'].f,
+                'WhatsApp Messenger': value.summary['WhatsApp Messenger'].f,
+                'Messenger': value.summary['Messenger'].f,
+                'Snapchat': value.summary['Snapchat'].f
               });
             break;
-          case "quality":
+          case "background":
             $scope.resultArray.push(
               {
                 'time':key,
-                'cdma':value.summary.cdma.quality,
-                'evdo': value.summary.evdo.quality,
-                'gsm': value.summary.gsm.quality,
-                'lte': value.summary.lte.quality,
-                'wcdma': value.summary.wcdma.quality
+                'time':key,
+                'Chrome Browser - Google' :value.summary['Chrome Browser - Google'].b,
+                'Facebook': value.summary['Facebook'].b,
+                'Gmail': value.summary['Gmail'].b,
+                'Google Play Store': value.summary['Google Play Store'].b,
+                'Maps': value.summary['Maps'].b,
+                'Instagram': value.summary['Instagram'].b,
+                'YouTube': value.summary['YouTube'].b,
+                'WhatsApp Messenger': value.summary['WhatsApp Messenger'].b,
+                'Messenger': value.summary['Messenger'].b,
+                'Snapchat': value.summary['Snapchat'].b
               });
             break;
         };
@@ -75,7 +87,6 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
           var timeBrush = timeSeries.brush();
           timeBrush.on('brushend', function (e) {
             var extent = timeBrush.extent();
-            console.log(extent)
             Asterix.parameters.time.start = extent[0];
             Asterix.parameters.time.end = extent[1];
             Asterix.parameters.scale.time = "hour";
@@ -87,24 +98,45 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
           var timeDimension = ndx.dimension(function (d) {
             if (d.time != null) return d.time;
           })
-          var cdmaGroup = timeDimension.group().reduceSum(function (d) {
-            return d.cdma;
+
+          var ChromeGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Chrome Browser - Google'];
           });
 
-          var evdoGroup = timeDimension.group().reduceSum(function (d) {
-            return d.evdo;
+          var FacebookGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Facebook'];
           });
 
-          var gsmGroup = timeDimension.group().reduceSum(function (d) {
-            return d.gsm;
+          var GmailGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Gmail'];
           });
 
-          var lteGroup = timeDimension.group().reduceSum(function (d) {
-            return d.lte;
+          var PlayGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Google Play Store'];
           });
 
-          var wcdmaGroup = timeDimension.group().reduceSum(function (d) {
-            return d.wcdma;
+          var MapsGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Maps'];
+          });
+
+          var InstagramGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Instagram'];
+          });
+
+          var YouTubeGroup = timeDimension.group().reduceSum(function (d) {
+            return d['YouTube'];
+          });
+
+          var WhatsAppGroup = timeDimension.group().reduceSum(function (d) {
+            return d['WhatsApp Messenger'];
+          });
+
+          var MessengerGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Messenger'];
+          });
+
+          var SnapchatGroup = timeDimension.group().reduceSum(function (d) {
+            return d['Snapchat'];
           });
 
           var minDate = timeDimension.bottom(1)[0].time;
@@ -121,11 +153,16 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
             .height(height)
             .margins(margin)
             .dimension(timeDimension)
-            .group(cdmaGroup,"cdma")
-            .stack(evdoGroup,"evdo")
-            .stack(gsmGroup,"gsm")
-            // .stack(lteGroup)
-            .stack(wcdmaGroup,"wcdma")
+            .group(ChromeGroup,"Google Chrome")
+            .stack(FacebookGroup,"Facebook")
+            .stack(GmailGroup,"Gmail")
+            .stack(PlayGroup,"Google Play")
+            .stack(MapsGroup,"Maps")
+            .stack(InstagramGroup,"Instagram")
+            .stack(YouTubeGroup,"Youtube")
+            .stack(WhatsAppGroup,"WhatsApp")
+            .stack(MessengerGroup, "Messenger")
+            .stack(SnapchatGroup, "Snapchat")
             .x(d3.time.scale().domain([minDate, maxDate]))
             .legend(dc.legend().x(850).y(10).itemHeight(13).gap(5));
 
