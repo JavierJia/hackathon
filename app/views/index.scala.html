@@ -16,5 +16,32 @@
      * template and passing a `String` message.
      *@
     @play20.welcome(message, style = "Scala")
-
+    <div class="container" ng-app="hackathon" ng-controller="AppCtrl">
+        <div class="row">
+            <div id="search-bar" class="container" ng-controller="SelectCtrl">
+                <form class="form-horizontal" ng-submit="search()" ng-init="init()">
+                    <select id="carrier-select" class="form-control" ng-model="signalMapConf.carrier">
+                        <option>cdma</option>
+                        <option>evdo</option>
+                        <option>gsm</option>
+                        <option>lte</option>
+                        <option>wcdma</option>
+                    </select>
+                    <select id="signal-type-select" class="form-control" ng-model="signalMapConf.type">
+                        <option>dbm</option>
+                        <option>level</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" id="submit-button">Submit</button>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <map id="signal-map" class="col-md-12" config="signalMapConf" data="Asterix.signalMapResult"></map>
+            <time-series id="signal-time-series" class="col-md-12" conf="signalTimeConf" data="Asterix.signalTimeResult"></time-series>
+        </div>
+        <div class="row">
+            <map id="app-map" class="col-md-12" config="appMapConf" data="Asterix.appMapResult"></map>
+            <time-series id="app-time-series" class="col-md-12" conf="appTimeConf" data="Asterix.appTimeResult"></time-series>
+        </div>
+    </div>
 }

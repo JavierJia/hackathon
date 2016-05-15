@@ -6,10 +6,7 @@ angular.module('cloudberry.common', [])
     var asterixService = {
 
       parameters: {
-        dataset: "hackathon",
-        carrier: "AT&T",
-        signal_dbm: -10,
-        signal_level: 4,
+        queryType: "Signal",
         area: {
           swLog: -46.23046874999999,
           swLat: 53.85252660044951,
@@ -20,41 +17,54 @@ angular.module('cloudberry.common', [])
           start: startDate,
           end: endDate
         },
-        level: "neighborhood",
-        repeatDuration: 0
+        scale: {
+          time: "day",
+          map: "neighbor"
+        },
       },
 
-      query: function(parameters, queryType) {
+      query: function(parameters) {
         var json = (JSON.stringify({
-          dataset: parameters.dataset,
-          carrier: parameters.carrier,
-          signal_dbm: parameters.signal_dbm,
-          signal_level: parameters.signal_level,
+          queryType: parameters.queryType,
           area: parameters.area,
-          timeRange : {
+          time : {
             start: Date.parse(parameters.time.start),
             end: Date.parse(parameters.time.end)
           },
-          level: parameters.level,
-          repeatDuration: parameters.repeatDuration
+          scale: parameters.scale
         }));
         ws.send(json);
       },
-      queryType : "",
-      mapResult: {},
-      timeResult: {}
+      signalMapResult: {},
+      signalTimeResult: {},
+      appMapResult: {},
+      appTimeResult: {}
     };
 
     ws.onmessage = function(event) {
       $timeout(function() {
         console.log(event.data);
         asterixService.result = JSON.parse(event.data);
-        switch (result.aggType) {
+        switch (result.dimension) {
           case "map":
-            asterixService.mapResult = result.result;
+            switch (result.queryType) {
+              case "Signal":
+                asterixService.signalMapResult = result.results;
+                break;
+              case "AppUsage":
+                asterixService.appMapResult = result.results;
+                break;
+            }
             break;
           case "time":
-            asterixService.timeResult = result.result;
+            switch (result.queryType) {
+              case "Signal":
+                asterixService.signalTimeResult = result.results;
+                break;
+              case "AppUsage":
+                asterixService.appTimeResult = result.results;
+                break;
+            }
             break;
           default:
             console.log("ws get unknown data: " + result);

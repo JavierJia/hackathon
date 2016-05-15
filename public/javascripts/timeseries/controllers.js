@@ -1,4 +1,4 @@
-angular.module('cloudberry.timeseries', ['cloudberry.common'])
+angular.module('hackathon.timeseries', ['hackathon.common'])
   .controller('TimeSeriesCtrl', function ($scope, $window, Asterix) {
     $scope.result = {};
     $scope.resultArray = [];
@@ -6,7 +6,6 @@ angular.module('cloudberry.timeseries', ['cloudberry.common'])
     $scope.dc = $window.dc;
     $scope.crossfilter = $window.crossfilter;
     $scope.preProcess = function (result) {
-      // TODO make the pattern can be changed by the returned result parameters
       var parseDate = d3.time.format("%Y-%m-%d").parse;
       var result_array = [];
       angular.forEach(result, function (value, key) {
@@ -22,6 +21,8 @@ angular.module('cloudberry.timeseries', ['cloudberry.common'])
       },
 
       function(newResult) {
+        if(newResult.type != $scope.config.type)
+          return;
         if(newResult && Asterix.queryType != 'time') {
           $scope.result = newResult;
           $scope.resultArray = $scope.preProcess(newResult);
@@ -36,7 +37,7 @@ angular.module('cloudberry.timeseries', ['cloudberry.common'])
       bottom: 30,
       left: 50
     };
-    var width = 962 - margin.left - margin.right;
+    var width = $(window).width() - margin.left - margin.right;
     var height = 150 - margin.top - margin.bottom;
     return {
       restrict: "E",

@@ -1,6 +1,5 @@
-angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
+angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
   .controller('MapCtrl', function($scope, $window, $http, $compile, Asterix, leafletData) {
-    $scope.result = {};
     // map setting
     angular.extend($scope, {
       // TODO make this center and level as parameters to make it general
@@ -24,16 +23,10 @@ angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
       geojsonData: {},
       polygons: {},
       status: {
-        init: true,
         zoomLevel: 4,
         logicLevel: 'state'
       },
       styles: {
-        initStyle: {
-          weight: 2,
-          fillOpacity: 0.5,
-          color: 'white'
-        },
         stateStyle: {
           fillColor: '#f7f7f7',
           weight: 2,
@@ -72,49 +65,39 @@ angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
         if ($scope.map) {
           $scope.status.zoomLevel = $scope.map.getZoom();
           $scope.bounds = $scope.map.getBounds();
+          Asterix.parameters.area.swLat = $scope.bounds._southWest.lat;
+          Asterix.parameters.area.swLog = $scope.bounds._southWest.lng;
+          Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
+          Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
+          Asterix.parameters.queryType = $scope.config.queryType;
           if ($scope.status.zoomLevel > 5) {
             $scope.status.logicLevel = 'county';
-            if (!$scope.status.init) {
-              Asterix.parameters.area.swLat = $scope.bounds._southWest.lat;
-              Asterix.parameters.area.swLog = $scope.bounds._southWest.lng;
-              Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
-              Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
-              Asterix.parameters.level = 'county';
-              Asterix.queryType = 'zoom';
-              Asterix.query(Asterix.parameters, Asterix.queryType);
-            }
+            Asterix.parameters.scale.map = $scope.status.logicLevel;
+            Asterix.query(Asterix.parameters);
 
             $scope.map.removeLayer($scope.polygons.statePolygons);
             $scope.map.addLayer($scope.polygons.countyPolygons);
           } else if ($scope.status.zoomLevel <= 5) {
             $scope.status.logicLevel = 'state';
-            if (!$scope.status.init) {
-              Asterix.parameters.area.swLat = $scope.bounds._southWest.lat;
-              Asterix.parameters.area.swLog = $scope.bounds._southWest.lng;
-              Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
-              Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
-              Asterix.parameters.level = 'state';
-              Asterix.queryType = 'zoom';
-              Asterix.query(Asterix.parameters, Asterix.queryType);
-            }
+            Asterix.parameters.level = $scope.status.logicLevel;
+            Asterix.query(Asterix.parameters);
+
             $scope.map.removeLayer($scope.polygons.countyPolygons);
             $scope.map.addLayer($scope.polygons.statePolygons);
           }
         }
       });
 
-      $scope.$on("leafletDirectiveMap.dragend", function() {
-        if (!$scope.status.init) {
-          $scope.bounds = $scope.map.getBounds();
-          Asterix.parameters.area.swLat = $scope.bounds._southWest.lat;
-          Asterix.parameters.area.swLog = $scope.bounds._southWest.lng;
-          Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
-          Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
-          Asterix.parameters.level = $scope.status.logicLevel;
-          Asterix.queryType = 'drag';
-          Asterix.query(Asterix.parameters, Asterix.queryType);
-        }
-      });
+      // $scope.$on("leafletDirectiveMap.dragend", function() {
+      //   $scope.bounds = $scope.map.getBounds();
+      //   Asterix.parameters.area.swLat = $scope.bounds._southWest.lat;
+      //   Asterix.parameters.area.swLog = $scope.bounds._southWest.lng;
+      //   Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
+      //   Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
+      //   Asterix.parameters.scale.map = $scope.status.logicLevel;
+      //   Asterix.parameters.queryType = $scope.config.queryType;
+      //   Asterix.query(Asterix.parameters);
+      // });
     };
 
 
@@ -130,15 +113,7 @@ angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
       }
 
       function resetHighlight(leafletEvent) {
-        var style;
-        if (!$scope.status.init)
-          style = {
-            weight: 2,
-            fillOpacity: 0.5,
-            color: 'white'
-          };
-        else
-          style = {
+        var style = {
             weight: 1,
             fillOpacity: 0.2,
             color: '#92c5de'
@@ -219,10 +194,55 @@ angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
     function drawMap(result) {
       var maxWeight = 10;
       var minWeight = 0;
+      
+      var getCount = function (data, carrier, type) {
+        switch (carrier) {
+          case "cdma":
+            switch (type) {
+              case "strength":
+                  return data.cdma.strength;
+              case "quality":
+                  return data.cdma.quality;
+            }
+            break;
+          case "evdo":
+            switch (type) {
+              case "strength":
+                return data.evdo.strength;
+              case "quality":
+                return data.evdo.quality;
+            }
+            break;
+          case "gsm":
+            switch (type) {
+              case "strength":
+                return data.gsm.strength;
+              case "quality":
+                return data.gsm.quality;
+            }
+            break;
+          case "lte":
+            switch (type) {
+              case "strength":
+                return data.lte.strength;
+              case "quality":
+                return data.lte.quality;
+            }
+            break;
+          case "wcdma":
+            switch (type) {
+              case "strength":
+                return data.wcdma.strength;
+              case "quality":
+                return data.wcdma.quality;
+            }
+            break;
+        }
+      }
 
       // find max/min weight
-      angular.forEach(result, function(value, key) {
-        maxWeight = Math.max(maxWeight, value.count);
+      angular.forEach(result, function(data) {
+        maxWeight = Math.max(maxWeight, getCount(data, $scope.config.carrier, $scope.config.type));
       });
 
       var range = maxWeight - minWeight;
@@ -321,27 +341,25 @@ angular.module('cloudberry.map', ['leaflet-directive', 'cloudberry.common'])
       if ($scope.map)
         $scope.legend.addTo($scope.map);
     }
-
-    $scope.$watch(
-      function() {
-        return Asterix.mapResult;
-      },
-
-      function(newResult) {
-        $scope.result = newResult;
-        if (Object.keys($scope.result).length != 0) {
-          $scope.status.init = false;
-          drawMap($scope.result);
-        }
-      }
-    );
   })
   .directive("map", function () {
     return {
       restrict: 'E',
       controller: 'MapCtrl',
+      scope: {
+        config: "=",
+        data: "="
+      },
       template:[
-        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="100%" height="100%" ng-init="init()"></leaflet>'
-      ].join('')
+        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="$scope.config.width" height="$scope.config.height" ng-init="init()"></leaflet>'
+      ].join(''),
+      link: function ($scope, $element, $attrs) {
+        $scope.watch([$scope.data, $scope.config], function() {
+            if (Object.keys($scope.data).length != 0) {
+              drawMap($scope.data);
+            }
+          }
+        );
+      }
     };
   });
