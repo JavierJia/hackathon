@@ -1,12 +1,15 @@
 var app = angular.module('hackathon', ['hackathon.map','hackthon.timeseries']);
 
 app.controller("AppCtrl", function ($scope, Asterix) {
+  $scope.selection = {
+    carrier: "cdma",
+    type: "strength"
+  };
   $scope.signalMapConf = {
     mapType: "Signal",
     width : $(window).width(),
     height: $(window).height()*0.4,
-    carrier: "cdma",
-    type: "strength"
+    selection: $scope.selection
   };
   
   $scope.timeseries_width = $(window).width();

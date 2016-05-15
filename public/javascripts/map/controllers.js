@@ -242,7 +242,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       // find max/min weight
       angular.forEach(result, function(data) {
-        maxWeight = Math.max(maxWeight, getCount(data, $scope.config.carrier, $scope.config.type));
+        maxWeight = Math.max(maxWeight, getCount(data, $scope.config.selection.carrier, $scope.config.selection.type));
       });
 
       var range = maxWeight - minWeight;
