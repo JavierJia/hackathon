@@ -40,6 +40,10 @@ class HomeController @Inject()(val wsClient: WSClient,
     Ok(views.html.index("Your new application is ready."))
   }
 
+  def app = Action {
+    Ok(views.html.app("AppUsage"))
+  }
+
   def ws = WebSocket.accept[JsValue, JsValue] {
     request =>
       ActorFlow.actorRef(out => UserActor.props(out, dbActor))
