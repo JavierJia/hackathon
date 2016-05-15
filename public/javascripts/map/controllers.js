@@ -4,8 +4,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
     angular.extend($scope, {
       // TODO make this center and level as parameters to make it general
       center: {
-        lat: 39.5,
-        lng: -96.35,
+        lat: 41.004,
+        lng: -73.784,
         zoom: 4
       },
       tiles: {
@@ -58,6 +58,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       leafletData.getMap().then(function(map) {
         $scope.map = map;
         $scope.bounds = map.getBounds();
+        map.setView([41.005, -73.784],10);
+
       });
 
       setInfoControl();
@@ -71,20 +73,24 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
           Asterix.parameters.queryType = $scope.config.queryType;
           Asterix.isTimeQuery = false;
-          if ($scope.status.zoomLevel > 5) {
+          if ($scope.status.zoomLevel > 12) {
             $scope.status.logicLevel = 'county';
             Asterix.parameters.scale.map = $scope.status.logicLevel;
             Asterix.query(Asterix.parameters);
 
-            $scope.map.removeLayer($scope.polygons.statePolygons);
-            $scope.map.addLayer($scope.polygons.countyPolygons);
-          } else if ($scope.status.zoomLevel <= 5) {
+            if($scope.polygons.statePolygons) {
+              $scope.map.removeLayer($scope.polygons.statePolygons);
+              $scope.map.addLayer($scope.polygons.countyPolygons);
+            }
+          } else if ($scope.status.zoomLevel <= 12) {
             $scope.status.logicLevel = 'state';
             Asterix.parameters.level = $scope.status.logicLevel;
             Asterix.query(Asterix.parameters);
 
-            $scope.map.removeLayer($scope.polygons.countyPolygons);
-            $scope.map.addLayer($scope.polygons.statePolygons);
+            if($scope.polygons.countyPolygons) {
+              $scope.map.removeLayer($scope.polygons.countyPolygons);
+              $scope.map.addLayer($scope.polygons.statePolygons);
+            }
           }
         }
       });
@@ -163,7 +169,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
     // load geoJson
     function loadGeoJsonFiles(onEachFeature) {
-      $http.get("assets/data/1.json")
+      $http.get("assets/resources/data/1.geojson")
         .success(function(data) {
           $scope.geojsonData.state = data;
           $scope.polygons.statePolygons = L.geoJson(data, {
@@ -175,7 +181,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         .error(function(data) {
           console.log("Load state data failure");
         });
-      $http.get("assets/data/tier2bound.json")
+      $http.get("assets/resources/data/tier2bound.geojson")
         .success(function(data) {
           $scope.geojsonData.county = data;
           $scope.polygons.countyPolygons = L.geoJson(data, {
@@ -193,7 +199,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
      * Update map based on a set of spatial query result cells
      * @param    [Array]     mapPlotData, an array of coordinate and weight objects
      */
-    function drawMap(result) {
+    $scope.drawMap = function (result) {
       var maxWeight = 10;
       var minWeight = 0;
       
@@ -352,13 +358,11 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         data: "="
       },
       template:[
-        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="$scope.config.width" height="$scope.config.height" ng-init="init()"></leaflet>'
+        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="800" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.watchGroup([$scope.data, $scope.config], function(newVal, oldVal) {
-            if (Object.keys($scope.data).length != 0) {
-              drawMap($scope.data);
-            }
+        $scope.$watchGroup([$scope.data, $scope.config], function(newVal, oldVal) {
+            $scope.drawMap($scope.data);
           }
         );
       }

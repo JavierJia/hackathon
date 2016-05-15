@@ -1,4 +1,4 @@
-var app = angular.module('hackathon', ['hackathon.map','hackthon.timeseries']);
+var app = angular.module('hackathon', ['hackathon.map','hackathon.timeseries']);
 
 app.controller("AppCtrl", function ($scope, Asterix) {
   $scope.selection = {
@@ -7,6 +7,7 @@ app.controller("AppCtrl", function ($scope, Asterix) {
   };
 
   $scope.signalMapConf = {
+    queryType: "Signal",
     width : $(window).width(),
     height: $(window).height()*0.4,
     selection: $scope.selection
@@ -17,5 +18,5 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     height: 150,
     selection: $scope.selection
   };
-  
+
 });

@@ -39,20 +39,12 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
     $scope.$watchGroup(['$scope.data', '$scope.config.selection.type'],
       function(newVal, oldVal) {
         if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
-          $scope.preProcess($scope.data, $scope.conf.type);
+          $scope.preProcess($scope.data, $scope.config.type);
         }
       }
     );
   })
   .directive('timeSeries', function (Asterix) {
-    var margin = {
-      top: 10,
-      right: 10,
-      bottom: 30,
-      left: 50
-    };
-    var width = $scope.config.width - margin.left - margin.right;
-    var height = $scope.config.height - margin.top - margin.bottom;
     return {
       restrict: "E",
       scope: {
@@ -61,10 +53,20 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
       },
       controller: 'TimeSeriesCtrl',
       link: function ($scope, $element, $attrs) {
-        var chart = d3.select($element[0]);
-        $scope.$watch('resultArray', function (newVal, oldVal) {
-          if(newVal.length == 0)
+
+        if(!$scope.data)
             return;
+        var chart = d3.select($element[0]);
+        var margin = {
+          top: 10,
+          right: 10,
+          bottom: 30,
+          left: 50
+        };
+
+        var width = $scope.config.width - margin.left - margin.right;
+        var height = $scope.config.height - margin.top - margin.bottom;
+        $scope.$watch('resultArray', function (newVal, oldVal) {
           chart.selectAll('*').remove();
 
           var timeSeries = dc.lineChart(chart[0][0]);

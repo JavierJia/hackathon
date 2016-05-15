@@ -15,7 +15,6 @@
      * Get an `Html` object by calling the built-in Play welcome
      * template and passing a `String` message.
      *@
-    @play20.welcome(message, style = "Scala")
     <div class="container" ng-app="hackathon" ng-controller="AppCtrl">
         <div class="row">
             <div id="search-bar" class="container">
@@ -36,7 +35,7 @@
         </div>
         <div class="row">
             <map id="signal-map" class="col-md-12" config="signalMapConf" data="Asterix.signalMapResult"></map>
-            <time-series id="signal-time-series" class="col-md-12" conf="signalTimeConf" data="Asterix.signalTimeResult"></time-series>
+            <time-series id="signal-time-series" class="col-md-12" config="signalTimeConf" data="Asterix.signalTimeResult"></time-series>
         </div>
         @*<div class="row">*@
             @*<map id="app-map" class="col-md-12" config="appMapConf" data="Asterix.appMapResult"></map>*@
