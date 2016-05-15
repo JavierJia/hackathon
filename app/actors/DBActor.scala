@@ -166,6 +166,19 @@ object DBActor {
          |)
          |""".stripMargin
 
+    def grpby(i: Int): String = {
+      val apps = Seq("Chrome Browser - Google", "Facebook", "Gmail", "Google Play Store", "Maps",
+                     "Instagram", "YouTube", "WhatsApp Messenger", "Messenger", "Snapchat")
+      s"""
+         | "${apps(i)}": {
+         |        "b" : count( for $$x in $$t
+         |              where $$x.app_name = "${apps(i)}" and $$x.app_usage_type = 4 return $$x),
+         |        "f" : count( for $$x in $$t
+         |              where $$x.app_name = "${apps(i)}" and $$x.app_usage_type = 5 return $$x)
+         |              }
+         |""".stripMargin
+    }
+
     s"""
        |use dataverse $Dataverse
        |
@@ -209,22 +222,10 @@ object DBActor {
        |return {
        |  "key" : $$c,
        |  "summary" : {
-       |    "b" :
-       |          ( for $$x in $$t
-       |              where $$x.app_usage_type = 4
-       |              group by $$app:= $$x.app_name with $$x
-       |              let $$count := count($$x)
-       |              return { "app" : $$app, "count": $$count }
-       |           ),
-       |    "f" : ( for $$x in $$t
-       |              where $$x.app_usage_type = 5
-       |              group by $$app:= $$x.app_name with $$x
-       |              let $$count := count($$x)
-       |              return { "app" : $$app, "count": $$count }
-       |           )
+       |    ${Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).map(grpby).mkString(",")}
        |  }
-       |
        |}
+       |
        |
        |""".stripMargin
   }
