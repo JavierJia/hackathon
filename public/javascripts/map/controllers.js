@@ -22,7 +22,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       },
       geojsonData: {},
       polygons: {},
-      status: {
+      status:{
         zoomLevel: 10,
         logicLevel: 'boro'
       },
@@ -73,19 +73,19 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
           Asterix.parameters.queryType = $scope.config.queryType;
           Asterix.isTimeQuery = false;
-          if ($scope.status.zoomLevel > 12) {
+          if ($scope.status.zoomLevel > 11) {
             $scope.status.logicLevel = 'neighbor';
             Asterix.parameters.scale.map = $scope.status.logicLevel;
-            Asterix.query(Asterix.parameters);
+            Asterix.query(Asterix.parameters, false);
 
             if($scope.polygons.boroPolygons) {
               $scope.map.removeLayer($scope.polygons.boroPolygons);
               $scope.map.addLayer($scope.polygons.neighborPolygons);
             }
-          } else if ($scope.status.zoomLevel <= 12) {
+          } else if ($scope.status.zoomLevel <= 11) {
             $scope.status.logicLevel = 'boro';
-            Asterix.parameters.level = $scope.status.logicLevel;
-            Asterix.query(Asterix.parameters);
+            Asterix.parameters.scale.map = $scope.status.logicLevel;
+            Asterix.query(Asterix.parameters, false);
 
             if($scope.polygons.neighborPolygons) {
               $scope.map.removeLayer($scope.polygons.neighborPolygons);
@@ -122,10 +122,10 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       function resetHighlight(leafletEvent) {
         var style = {
-            weight: 1,
-            fillOpacity: 0.2,
-            color: '#92c5de'
-          }
+          weight: 2,
+          fillOpacity: 0.5,
+          color: 'white'
+        };
         if (leafletEvent)
           leafletEvent.target.setStyle(style);
       }
@@ -149,10 +149,10 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       info.onAdd = function() {
         this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
         this._div.innerHTML = [
-          '<h4>Count by {{ status.logicLevel }}</h4>',
-          '<b>{{ selectedPlace.properties.name || "No place selected" }}</b>',
+          '<h4>Level : {{ status.logicLevel }}</h4>',
+          '<b>Region: {{ selectedPlace.properties.id || "No place selected" }}</b>',
           '<br/>',
-          'Count: {{ selectedPlace.properties.count || "0" }}'
+          'Value: {{ selectedPlace.properties.count || "0" }}'
         ].join('');
         $compile(this._div)($scope);
         return this._div;
@@ -200,9 +200,9 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
      * @param    [Array]     mapPlotData, an array of coordinate and weight objects
      */
     $scope.drawMap = function (result) {
-      var maxWeight = 10;
-      var minWeight = 0;
-      
+      var maxWeight = -100000;
+      var minWeight = 100000;
+
       var getCount = function (data, carrier, type) {
         switch (carrier) {
           case "cdma":
@@ -250,7 +250,9 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       // find max/min weight
       angular.forEach(result, function(value, key) {
-        maxWeight = Math.max(maxWeight, getCount(value, $scope.config.selection.carrier, $scope.config.selection.type));
+        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.selection.carrier, $scope.config.selection.type));
+        minWeight = Math.min(minWeight, getCount(value.summary, $scope.config.selection.carrier, $scope.config.selection.type));
+
       });
 
       var range = maxWeight - minWeight;
@@ -298,7 +300,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
@@ -310,7 +312,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
             d.properties.count = 0;
           for (var k in result) {
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
@@ -327,7 +329,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       $scope.legend.onAdd = function(map) {
         var div = L.DomUtil.create('div', 'info legend'),
-          grades = [0]
+          grades = [Math.floor(minWeight)]
 
         for (var i = 1; i < 10; i++) {
           var value = Math.floor((i * 1.0 / 10) * range + minWeight);
@@ -358,10 +360,10 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         data: "="
       },
       template:[
-        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="800" ng-init="init()"></leaflet>'
+        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="550" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.$watchGroup([$scope.data, $scope.config], function(newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config.selection.carrier', 'config.selection.type'], function(newVal, oldVal) {
             $scope.drawMap($scope.data);
           }
         );

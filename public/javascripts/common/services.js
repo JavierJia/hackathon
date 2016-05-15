@@ -23,13 +23,13 @@ angular.module('hackathon.common', [])
         },
       },
 
-      query: function(parameters) {
+      query: function(parameters, isTimeQuery) {
         var json = (JSON.stringify({
           queryType: parameters.queryType,
           area: parameters.area,
           time : {
-            start: Date.parse(parameters.time.start),
-            end: Date.parse(parameters.time.end)
+            start: isTimeQuery?Date.parse(parameters.time.start):Date.parse(startDate),
+            end: isTimeQuery?Date.parse(parameters.time.end):Date.parse(endDate)
           },
           scale: parameters.scale
         }));
@@ -39,37 +39,36 @@ angular.module('hackathon.common', [])
       signalTimeResult: {},
       appMapResult: {},
       appTimeResult: {},
-
       isTimeQuery: false
     };
 
     ws.onmessage = function(event) {
       $timeout(function() {
-        console.log(event.data);
+        // console.log(event.data);
         asterixService.result = JSON.parse(event.data);
         switch (asterixService.result.dimension) {
           case "map":
-            switch (asterixService.result.queryType) {
+            switch (asterixService.result.type) {
               case "Signal":
-                asterixService.signalMapResult = result.results;
+                asterixService.signalMapResult = asterixService.result.results;
                 break;
               case "AppUsage":
-                asterixService.appMapResult = result.results;
+                asterixService.appMapResult = asterixService.result.results;
                 break;
             }
             break;
           case "time":
-            switch (asterixService.result.queryType) {
+            switch (asterixService.result.type) {
               case "Signal":
-                asterixService.signalTimeResult = result.results;
+                asterixService.signalTimeResult = asterixService.result.results;
                 break;
               case "AppUsage":
-                asterixService.appTimeResult = result.results;
+                asterixService.appTimeResult = asterixService.result.results;
                 break;
             }
             break;
           default:
-            console.log("ws get unknown data: " + result);
+            console.log("ws get unknown data: " + asterixService.result);
             break;
         }
       });
