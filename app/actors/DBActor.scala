@@ -3,7 +3,7 @@ package actors
 import akka.actor.{Actor, ActorLogging}
 import models._
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json._
 import services.AsterixConnection
 
 import scala.concurrent.ExecutionContext
@@ -13,17 +13,15 @@ class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extend
 
   import DBActor._
 
-  import models.Formatter._
-
   override def receive: Receive = {
     case query: SignalQuery =>
       val aql = generateSignalAQL(query)
       val curSender = sender()
       conn.post(aql).map {
         response =>
-          val jsons = Json.parse(response.body.replaceAll(" \\]\n\\[", " ,\n")).asInstanceOf[JsArray]
+          val jsons = Json.parse("[ " +  response.body.replaceAll(" \\]\n\\[", " \\],\n\\[") + " ] ").asInstanceOf[JsArray]
           curSender ! packageResult("map", query.scale, jsons.value(0))
-          curSender ! packageResult("map", query.scale, jsons.value(1))
+          curSender ! packageResult("time", query.scale, jsons.value(1))
       }
   }
 }
@@ -40,8 +38,8 @@ object DBActor {
   val AllCarrier = Seq(CDMA, EVDO, GSM, LTE, WCDMA)
 
   import models.Formatter._
-  def packageResult(dimension: String, scale: MapTimeScale, results: JsValue): JSONObject = {
-    JSONObject(Seq(
+  def packageResult(dimension: String, scale: MapTimeScale, results: JsValue): JsObject = {
+    JsObject(Seq(
       "type" -> JsString("Signal"),
       "dimension" -> JsString(dimension),
       "scale" -> Json.toJson(scale),

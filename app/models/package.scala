@@ -39,7 +39,7 @@ package object models {
 
   object Formatter {
 
-    implicit val rectangularFormat = Json.format[Rectangle]
+    implicit val rectangularFormat: Format[Rectangle] = Json.format[Rectangle]
 
     implicit val intervalFormat: Format[Interval] = {
       new Format[Interval] {
@@ -71,7 +71,18 @@ package object models {
           JsSuccess(MapTimeScale(geo, time))
         }
 
-        override def writes(o: MapTimeScale): JsValue = ???
+        override def writes(o: MapTimeScale): JsValue = {
+          JsObject(Seq(
+            "map" -> JsString(o.spatial match {
+                                case Boro => "boro"
+                                case Neighbor => "neighbor"
+                              }),
+            "time" -> JsString(o.time match {
+                                 case Day => "day"
+                                 case Hour => "hour"
+                               })
+          ))
+        }
       }
     }
 
