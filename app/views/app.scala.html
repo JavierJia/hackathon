@@ -18,12 +18,27 @@
   <script type='text/javascript' src='@routes.Assets.versioned("lib/crossfilter/crossfilter.min.js")'></script>
   <script type='text/javascript' src='@routes.Assets.versioned("lib/dc.js/dc.min.js")'></script>
 
-  <script type="text/javascript" src='@routes.Assets.versioned("javascripts/app.js")' ></script>
-  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/map/controllers.js")'></script>
+  <script type="text/javascript" src='@routes.Assets.versioned("javascripts/AppUsage.js")' ></script>
+  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/map/appControllers.js")'></script>
   <script type='text/javascript' src='@routes.Assets.versioned("javascripts/common/services.js")'></script>
-  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/timeseries/controllers.js")'></script>
+  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/timeseries/appControllers.js")'></script>
 </head>
 <body>
-
+  <div class="container" ng-app="hackathon.app" ng-controller="AppCtrl">
+    <div class="row">
+      <app-map id="app-map" class="col-md-12" config="appMapConf" data="appMapResult"></app-map>
+    </div>
+    <div class=row">
+      <app-timeseries id="app-time-series" class="col-md-10" config="appTimeConf" data="appTimeResult"></app-timeseries>
+      <div id="search-bar" class="col-md-2" style="margin-top:30px">
+        <form class="form-horizontal">
+          <select id="signal-type-select" class="form-control" ng-model="fb">
+            <option>foreground</option>
+            <option>background</option>
+          </select>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -177,6 +177,9 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             onEachFeature: onEachFeature
           });
           $scope.polygons.boroPolygons.addTo($scope.map);
+          angular.forEach(data, function (d) {
+            console.log(d);
+          })
         })
         .error(function(data) {
           console.log("Load boro data failure");
@@ -193,6 +196,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
           console.log("Load neighbor data failure");
         });
 
+
     }
 
     /**
@@ -203,55 +207,21 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       var maxWeight = -100000;
       var minWeight = 100000;
 
-      var getCount = function (data, carrier, type) {
-        switch (carrier) {
-          case "cdma":
-            switch (type) {
-              case "strength":
-                return data.cdma.strength;
-              case "quality":
-                return data.cdma.quality;
-            }
+      var getCount = function (data, type) {
+        switch (type) {
+          case "b":
+            return data.b.count;
             break;
-          case "evdo":
-            switch (type) {
-              case "strength":
-                return data.evdo.strength;
-              case "quality":
-                return data.evdo.quality;
-            }
-            break;
-          case "gsm":
-            switch (type) {
-              case "strength":
-                return data.gsm.strength;
-              case "quality":
-                return data.gsm.quality;
-            }
-            break;
-          case "lte":
-            switch (type) {
-              case "strength":
-                return data.lte.strength;
-              case "quality":
-                return data.lte.quality;
-            }
-            break;
-          case "wcdma":
-            switch (type) {
-              case "strength":
-                return data.wcdma.strength;
-              case "quality":
-                return data.wcdma.quality;
-            }
+          case "f":
+            return data.f.count;
             break;
         }
       }
 
       // find max/min weight
       angular.forEach(result, function(value, key) {
-        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.selection.carrier, $scope.config.selection.type));
-        minWeight = Math.min(minWeight, getCount(value.summary, $scope.config.selection.carrier, $scope.config.selection.type));
+        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.fb));
+        minWeight = Math.min(minWeight, getCount(value.summary, $scope.config.fb));
 
       });
 
@@ -300,7 +270,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.fb);
           }
         });
 
@@ -312,7 +282,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             d.properties.count = 0;
           for (var k in result) {
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.fb);
           }
         });
 
@@ -351,7 +321,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
         $scope.legend.addTo($scope.map);
     }
   })
-  .directive("map", function () {
+  .directive("appMap", function () {
     return {
       restrict: 'E',
       controller: 'MapCtrl',
@@ -363,7 +333,7 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
         '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="550" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.$watchGroup(['data', 'config.selection.carrier', 'config.selection.type'], function(newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config.fb'], function(newVal, oldVal) {
             $scope.drawMap($scope.data);
           }
         );
