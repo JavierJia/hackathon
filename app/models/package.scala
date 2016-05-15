@@ -39,7 +39,7 @@ package object models {
 
   object Formatter {
 
-    implicit val rectangularFormat = Json.format[Rectangle]
+    implicit val rectangularFormat: Format[Rectangle] = Json.format[Rectangle]
 
     implicit val intervalFormat: Format[Interval] = {
       new Format[Interval] {
@@ -55,9 +55,9 @@ package object models {
       }
     }
 
-    implicit val spatialTimeScaleFormat: Format[SpatialTimeScale] = {
-      new Format[SpatialTimeScale] {
-        override def reads(json: JsValue): JsResult[SpatialTimeScale] = {
+    implicit val spatialTimeScaleFormat: Format[MapTimeScale] = {
+      new Format[MapTimeScale] {
+        override def reads(json: JsValue): JsResult[MapTimeScale] = {
           val time = (json \ "time").as[String] match {
             case "hour" => Hour
             case "day" => Day
@@ -68,14 +68,25 @@ package object models {
             case "neighbor" => Neighbor
             case _ => ???
           }
-          JsSuccess(SpatialTimeScale(geo, time))
+          JsSuccess(MapTimeScale(geo, time))
         }
 
-        override def writes(o: SpatialTimeScale): JsValue = ???
+        override def writes(o: MapTimeScale): JsValue = {
+          JsObject(Seq(
+            "map" -> JsString(o.spatial match {
+                                case Boro => "boro"
+                                case Neighbor => "neighbor"
+                              }),
+            "time" -> JsString(o.time match {
+                                 case Day => "day"
+                                 case Hour => "hour"
+                               })
+          ))
+        }
       }
     }
 
-    implicit val UserQueryFormat: Format[SignalQuery] = {
+    implicit val signalQueryFormat: Format[SignalQuery] = {
       new Format[SignalQuery] {
         override def reads(json: JsValue): JsResult[SignalQuery] = {
           val qType = (json \ "queryType").as[String] match {
@@ -84,7 +95,7 @@ package object models {
           }
           val area = (json \ "area").as[Rectangle]
           val time = (json \ "time").as[Interval]
-          val scale = (json \ "scale").as[SpatialTimeScale]
+          val scale = (json \ "scale").as[MapTimeScale]
           JsSuccess(SignalQuery(qType, scale, area, time))
         }
 
