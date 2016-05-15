@@ -56,8 +56,8 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
       link: function ($scope, $element, $attrs) {
         var chart = d3.select($element[0]);
         var margin = {
-          top: 30,
-          right: 10,
+          top: 10,
+          right: 50,
           bottom: 30,
           left: 50
         };
@@ -75,11 +75,12 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
           var timeBrush = timeSeries.brush();
           timeBrush.on('brushend', function (e) {
             var extent = timeBrush.extent();
+            console.log(extent)
             Asterix.parameters.time.start = extent[0];
             Asterix.parameters.time.end = extent[1];
             Asterix.parameters.scale.time = "hour";
             Asterix.isTimeQuery = true;
-            Asterix.query(Asterix.parameters);
+            Asterix.query(Asterix.parameters, true);
           });
 
           var ndx = crossfilter($scope.resultArray);
@@ -120,12 +121,13 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             .height(height)
             .margins(margin)
             .dimension(timeDimension)
-            .group(cdmaGroup)
-            .stack(evdoGroup)
-            .stack(gsmGroup)
+            .group(cdmaGroup,"cdma")
+            .stack(evdoGroup,"evdo")
+            .stack(gsmGroup,"gsm")
             // .stack(lteGroup)
-            .stack(wcdmaGroup)
-            .x(d3.time.scale().domain([minDate, maxDate]));
+            .stack(wcdmaGroup,"wcdma")
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .legend(dc.legend().x(850).y(10).itemHeight(13).gap(5));
 
           timeSeries.render();
 

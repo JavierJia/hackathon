@@ -9,7 +9,7 @@
  * argument is a `String` with the title of the page, the second
  * argument is an `Html` object containing the body of the page.
  *@
-@main("Welcome to Play") {
+@main("Cloudberry:Hackathon") {
 
     @*
      * Get an `Html` object by calling the built-in Play welcome
@@ -17,7 +17,14 @@
      *@
     <div class="container" ng-app="hackathon" ng-controller="AppCtrl">
         <div class="row">
-            <div id="search-bar" class="container">
+            <map id="signal-map" class="col-md-12" config="signalMapConf" data="signalMapResult"></map>
+        </div>
+        <div class=row">
+            <time-series id="signal-time-series" class="col-md-10" config="signalTimeConf" data="signalTimeResult"></time-series>
+            <div id="search-bar" class="col-md-2" style="margin-top:30px">
+                Carrier: {{ selection.carrier }}
+                <br/>
+                Type: {{ selection.type }}
                 <form class="form-horizontal">
                     <select id="carrier-select" class="form-control" ng-model="selection.carrier">
                         <option>cdma</option>
@@ -32,10 +39,6 @@
                     </select>
                 </form>
             </div>
-        </div>
-        <div class="row">
-            <map id="signal-map" class="col-md-12" config="signalMapConf" data="signalMapResult"></map>
-            <time-series id="signal-time-series" class="col-md-12" config="signalTimeConf" data="signalTimeResult"></time-series>
         </div>
         @*<div class="row">*@
             @*<map id="app-map" class="col-md-12" config="appMapConf" data="Asterix.appMapResult"></map>*@

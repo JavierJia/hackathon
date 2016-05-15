@@ -23,13 +23,13 @@ angular.module('hackathon.common', [])
         },
       },
 
-      query: function(parameters) {
+      query: function(parameters, isTimeQuery) {
         var json = (JSON.stringify({
           queryType: parameters.queryType,
           area: parameters.area,
           time : {
-            start: Date.parse(parameters.time.start),
-            end: Date.parse(parameters.time.end)
+            start: isTimeQuery?Date.parse(parameters.time.start):Date.parse(startDate),
+            end: isTimeQuery?Date.parse(parameters.time.end):Date.parse(endDate)
           },
           scale: parameters.scale
         }));
