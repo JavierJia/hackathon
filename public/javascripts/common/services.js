@@ -1,6 +1,6 @@
-angular.module('cloudberry.common', [])
+angular.module('hackathon.common', [])
   .service('Asterix', function($http, $timeout) {
-    var startDate = new Date(2012, 1, 1, 0, 0, 0, 0);
+    var startDate = new Date(2015, 9, 1, 0, 0, 0, 0);
     var endDate = new Date();
     var ws = new WebSocket("ws://localhost:9000/ws");
     var asterixService = {
@@ -19,7 +19,7 @@ angular.module('cloudberry.common', [])
         },
         scale: {
           time: "hour",
-          map: "neighbor"
+          map: "boro"
         },
       },
 
@@ -47,9 +47,9 @@ angular.module('cloudberry.common', [])
       $timeout(function() {
         console.log(event.data);
         asterixService.result = JSON.parse(event.data);
-        switch (result.dimension) {
+        switch (asterixService.result.dimension) {
           case "map":
-            switch (result.queryType) {
+            switch (asterixService.result.queryType) {
               case "Signal":
                 asterixService.signalMapResult = result.results;
                 break;
@@ -59,7 +59,7 @@ angular.module('cloudberry.common', [])
             }
             break;
           case "time":
-            switch (result.queryType) {
+            switch (asterixService.result.queryType) {
               case "Signal":
                 asterixService.signalTimeResult = result.results;
                 break;

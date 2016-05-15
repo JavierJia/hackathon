@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "angular-leaflet-directive" % "0.8.2",
   // timeseries module
   "org.webjars.bower" % "crossfilter" % "1.3.11",
-  "org.webjars.bower" % "dc.js" % "1.7.5",
+  "org.webjars.bower" % "dc.js" % "1.7.5" ,
   "org.webjars" % "d3js" % "3.5.16",
   "com.vividsolutions" % "jts" % "1.13",
   "org.wololo" % "jts2geojson" % "0.7.0"
