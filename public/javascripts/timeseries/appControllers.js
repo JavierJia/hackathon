@@ -10,7 +10,6 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
       var parseDate = d3.time.format("%Y-%m-%d %H").parse;
       angular.forEach(result, function (value, key) {
         key = parseDate(value.key);
-        console.log(value.summary)
         switch (type) {
           case "foreground":
             $scope.resultArray.push(
@@ -57,7 +56,7 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
     //   }
     // );
   })
-  .directive('timeSeries', function (Asterix) {
+  .directive('appTimeseries', function (Asterix) {
     return {
       restrict: "E",
       scope: {
@@ -75,9 +74,9 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
         };
         var width = $scope.config.width - margin.left - margin.right;
         var height = $scope.config.height - margin.top - margin.bottom;
-        $scope.$watchGroup(['data', 'config.selection.type'], function (newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config.fb.fb'], function (newVal, oldVal) {
           if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
-            $scope.preProcess($scope.data, $scope.config.selection.type);
+            $scope.preProcess($scope.data, $scope.config.fb.fb);
           }
           else
             return;
@@ -93,7 +92,6 @@ angular.module('hackathon.appTimeseries', ['hackathon.common'])
             Asterix.isTimeQuery = true;
             Asterix.query(Asterix.parameters, true);
           });
-
           var ndx = crossfilter($scope.resultArray);
           var timeDimension = ndx.dimension(function (d) {
             if (d.time != null) return d.time;
