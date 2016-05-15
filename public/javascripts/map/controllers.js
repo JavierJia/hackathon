@@ -163,7 +163,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
     // load geoJson
     function loadGeoJsonFiles(onEachFeature) {
-      $http.get("assets/data/state.json")
+      $http.get("assets/data/1.json")
         .success(function(data) {
           $scope.geojsonData.state = data;
           $scope.polygons.statePolygons = L.geoJson(data, {
@@ -175,7 +175,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         .error(function(data) {
           console.log("Load state data failure");
         });
-      $http.get("assets/data/county.json")
+      $http.get("assets/data/tier2bound.json")
         .success(function(data) {
           $scope.geojsonData.county = data;
           $scope.polygons.countyPolygons = L.geoJson(data, {
@@ -291,8 +291,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
             d.properties.count = 0;
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
-            if (result[k].key == d.properties.stateID)
-              d.properties.count = result[k].count;
+            if (result[k].key == d.properties.id)
+              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
@@ -303,8 +303,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
-            if (result[k].key == d.properties.countyID)
-              d.properties.count = result[k].count;
+            if (result[k].key == d.properties.id)
+              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
