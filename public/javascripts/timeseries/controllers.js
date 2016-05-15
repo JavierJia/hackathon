@@ -15,34 +15,35 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             $scope.resultArray.push(
               {
                 'time':key,
-                'cdma':value.cdma.strength,
-                'evdo': value.evdo.strength,
-                'gsm': value.gsm.strength,
-                'lte': value.lte.strength,
-                'wcdma': value.wcdma.strength
+                'cdma':value.summary.cdma.strength,
+                'evdo': value.summary.evdo.strength,
+                'gsm': value.summary.gsm.strength,
+                'lte': value.summary.lte.strength,
+                'wcdma': value.summary.wcdma.strength
               });
             break;
           case "quality":
             $scope.resultArray.push(
               {
                 'time':key,
-                'cdma':value.cdma.quality,
-                'evdo': value.evdo.quality,
-                'gsm': value.gsm.quality,
-                'lte': value.lte.quality,
-                'wcdma': value.wcdma.quality
+                'cdma':value.summary.cdma.quality,
+                'evdo': value.summary.evdo.quality,
+                'gsm': value.summary.gsm.quality,
+                'lte': value.summary.lte.quality,
+                'wcdma': value.summary.wcdma.quality
               });
             break;
         };
       });
     };
-    $scope.$watchGroup(['$scope.data', '$scope.config.selection.type'],
-      function(newVal, oldVal) {
-        if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
-          $scope.preProcess($scope.data, $scope.config.type);
-        }
-      }
-    );
+    // $scope.$watchGroup(['$scope.data', '$scope.config.selection.type'],
+    //   function(newVal, oldVal) {
+    //     console.log("controller")
+    //     if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
+    //       $scope.preProcess($scope.data, $scope.config.type);
+    //     }
+    //   }
+    // );
   })
   .directive('timeSeries', function (Asterix) {
     return {
@@ -53,20 +54,21 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
       },
       controller: 'TimeSeriesCtrl',
       link: function ($scope, $element, $attrs) {
-
-        if(!$scope.data)
-            return;
         var chart = d3.select($element[0]);
         var margin = {
-          top: 10,
+          top: 30,
           right: 10,
           bottom: 30,
           left: 50
         };
-
         var width = $scope.config.width - margin.left - margin.right;
         var height = $scope.config.height - margin.top - margin.bottom;
-        $scope.$watch('resultArray', function (newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config.selection.type'], function (newVal, oldVal) {
+          if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
+            $scope.preProcess($scope.data, $scope.config.selection.type);
+          }
+          else
+            return;
           chart.selectAll('*').remove();
 
           var timeSeries = dc.lineChart(chart[0][0]);
@@ -80,7 +82,7 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             Asterix.query(Asterix.parameters);
           });
 
-          var ndx = crossfilter(newVal);
+          var ndx = crossfilter($scope.resultArray);
           var timeDimension = ndx.dimension(function (d) {
             if (d.time != null) return d.time;
           })
@@ -107,6 +109,7 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
           var minDate = timeDimension.bottom(1)[0].time;
           var maxDate = timeDimension.top(1)[0].time;
 
+
           chart.append('text')
             .style('font','12px sans-serif')
             .html(minDate.getFullYear()+"-"+(minDate.getMonth()+1)+"-"+minDate.getDate());
@@ -124,7 +127,7 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             .stack(wcdmaGroup)
             .x(d3.time.scale().domain([minDate, maxDate]));
 
-          dc.renderAll();
+          timeSeries.render();
 
           chart.append('text')
             .style('font','12px sans-serif')

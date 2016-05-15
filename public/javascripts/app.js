@@ -19,10 +19,19 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     },
     function (newVal, oldVal) {
       $scope.signalMapResult = newVal;
-  })
+  });
+
+  $scope.$watch(
+    function(){
+      return Asterix.signalTimeResult;
+    },
+    function (newVal, oldVal) {
+      $scope.signalTimeResult = newVal;
+  });
+
   $scope.signalTimeConf = {
-    width: $(window).width(),
-    height: 150,
+    width: $(window).width()*0.8,
+    height: 250,
     selection: $scope.selection
   };
 
