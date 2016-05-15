@@ -122,10 +122,10 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       function resetHighlight(leafletEvent) {
         var style = {
-            weight: 1,
-            fillOpacity: 0.2,
-            color: '#92c5de'
-          }
+          weight: 2,
+          fillOpacity: 0.5,
+          color: 'white'
+        };
         if (leafletEvent)
           leafletEvent.target.setStyle(style);
       }
@@ -202,7 +202,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
     $scope.drawMap = function (result) {
       var maxWeight = 10;
       var minWeight = 0;
-      
+
       var getCount = function (data, carrier, type) {
         switch (carrier) {
           case "cdma":
@@ -250,7 +250,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       // find max/min weight
       angular.forEach(result, function(value, key) {
-        maxWeight = Math.max(maxWeight, getCount(value, $scope.config.selection.carrier, $scope.config.selection.type));
+        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.selection.carrier, $scope.config.selection.type));
       });
 
       var range = maxWeight - minWeight;
@@ -298,7 +298,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
@@ -310,7 +310,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
             d.properties.count = 0;
           for (var k in result) {
             if (result[k].key == d.properties.id)
-              d.properties.count = getCount(result[k], $scope.config.selection.carrier, $scope.config.selection.type);
+              d.properties.count = getCount(result[k].summary, $scope.config.selection.carrier, $scope.config.selection.type);
           }
         });
 
@@ -361,7 +361,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="800" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.$watchGroup([$scope.data, $scope.config], function(newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config'], function(newVal, oldVal) {
             $scope.drawMap($scope.data);
           }
         );

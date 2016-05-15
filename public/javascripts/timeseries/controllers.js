@@ -120,7 +120,7 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             .group(cdmaGroup)
             .stack(evdoGroup)
             .stack(gsmGroup)
-            .stack(lteGroup)
+            // .stack(lteGroup)
             .stack(wcdmaGroup)
             .x(d3.time.scale().domain([minDate, maxDate]));
 

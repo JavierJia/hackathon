@@ -13,6 +13,13 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     selection: $scope.selection
   };
 
+  $scope.$watch(
+    function(){
+      return Asterix.signalMapResult;
+    },
+    function (newVal, oldVal) {
+      $scope.signalMapResult = newVal;
+  })
   $scope.signalTimeConf = {
     width: $(window).width(),
     height: 150,
