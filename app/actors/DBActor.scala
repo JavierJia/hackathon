@@ -3,7 +3,7 @@ package actors
 import akka.actor.{Actor, ActorLogging}
 import models._
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 import services.AsterixConnection
 
 import scala.concurrent.ExecutionContext
@@ -14,6 +14,7 @@ class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extend
   import DBActor._
 
   import models.Formatter._
+
   override def receive: Receive = {
     case query: SignalQuery =>
       val aql = generateSignalAQL(query)
@@ -21,18 +22,8 @@ class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extend
       conn.post(aql).map {
         response =>
           val jsons = Json.parse(response.body.replaceAll(" \\]\n\\[", " ,\n")).asInstanceOf[JsArray]
-          curSender ! JSONObject(Seq(
-            "type" -> JsString("Signal"),
-            "dimension" -> JsString("map"),
-            "scale" -> Json.toJson(query.scale),
-            "results" -> jsons.value(0)).toMap
-          )
-          curSender ! JSONObject(Seq(
-            "type" -> JsString("Signal"),
-            "dimension" -> JsString("time"),
-            "scale" -> Json.toJson(query.scale),
-            "results" -> jsons.value(1)).toMap
-          )
+          curSender ! packageResult("map", query.scale, jsons.value(0))
+          curSender ! packageResult("map", query.scale, jsons.value(1))
       }
   }
 }
@@ -48,6 +39,16 @@ object DBActor {
   val WCDMA = "wcdma"
   val AllCarrier = Seq(CDMA, EVDO, GSM, LTE, WCDMA)
 
+  import models.Formatter._
+  def packageResult(dimension: String, scale: MapTimeScale, results: JsValue): JSONObject = {
+    JSONObject(Seq(
+      "type" -> JsString("Signal"),
+      "dimension" -> JsString(dimension),
+      "scale" -> Json.toJson(scale),
+      "results" -> results).toMap
+    )
+  }
+
   def strength(cate: String) = s"${cate}_dbm"
 
   def quality(cate: String) = s"${cate}_asu_level"
@@ -57,8 +58,8 @@ object DBActor {
   def pairAggr(cate: String) =
     s"""
        |"$cate" : {
-       |          "strength" : sum(for $$x in $$t return $$x.${strength(cate)}) / sum(for $$x in $$t return $$x.${count(cate)})
-       |          "quality": sum(for $$x in $$t return $$x.${quality(cate)}) / sum(for $$x in $$t return $$x.${count(cate)}
+       |          "strength" : sum(for $$x in $$t return $$x.${strength(cate)}) / (1+sum(for $$x in $$t return $$x.${count(cate)})),
+       |          "quality": sum(for $$x in $$t return $$x.${quality(cate)}) / (1+sum(for $$x in $$t return $$x.${count(cate)}))
        |          }
      """.stripMargin
 
@@ -75,15 +76,23 @@ object DBActor {
       case Boro => "boro_id"
       case Neighbor => "nid"
     }
+    val common =
+      s"""
+         |let $$common := (
+         |  for $$t in dataset $SignalDataSet
+         |  where $predicate
+         |  return $$t
+         |)
+         |""".stripMargin
+    val byTime =
+      s"""print-datetime($$t.$TimeField, "YYYY-MM-DD hh")""".stripMargin
+
     query.queryType match {
       case QueryType.Signal =>
         s"""
            |use dataverse $Dataverse
-           |let $$common = (
-           |  for $$t in dataset $SignalDataSet
-           |  where $predicate
-           |)
            |
+           |$common
            |for $$t in $$common
            |group by $$c:=$$t.$geoField with $$t
            |return {
@@ -91,12 +100,13 @@ object DBActor {
            |  "summary": {
            |  ${AllCarrier.map(pairAggr).mkString(",")}
            |  }
-           |}
+           |};
            |
+           |$common
            |for $$t in $$common
-           |group by $$c:=$$t.$TimeField with $$t
+           |group by $$c:= $byTime with $$t
            |return {
-           |  "key": string($$c),
+           |  "key": $$c,
            |  "summary": {
            |  ${AllCarrier.map(pairAggr).mkString(",")}
            |  }
