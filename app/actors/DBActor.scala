@@ -2,6 +2,7 @@ package actors
 
 import akka.actor.{Actor, ActorLogging}
 import models._
+import org.joda.time.{DateTime, Interval}
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json._
 import services.AsterixConnection
@@ -14,21 +15,35 @@ class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extend
 
   override def receive: Receive = {
     case query: MapQuery =>
-      val aql = generateMapAQL(query)
-      val curSender = sender()
-      conn.post(aql).map {
-        response =>
-          val jsons = Json.parse("[ " +  response.body.replaceAll(" \\]\n\\[", " \\],\n\\[") + " ] ").asInstanceOf[JsArray]
-          curSender ! packageResult("map", query.scale, jsons.value(0))
-          curSender ! packageResult("time", query.scale, jsons.value(1))
+      query.queryType match {
+        case QueryType.Signal =>
+          val aql = generateSignalMapAQL(query)
+          val curSender = sender()
+          conn.post(aql).map {
+            response =>
+              val jsons = Json.parse("[ " + response.body.replaceAll(" \\]\n\\[", " \\],\n\\[") + " ] ").asInstanceOf[JsArray]
+              curSender ! packageResult("Signal", "map", query.scale, jsons.value(0))
+              curSender ! packageResult("Signal", "time", query.scale, jsons.value(1))
+          }
+        case QueryType.AppUsage =>
+          val aql = generateAppUsageAQL(query)
+          val curSender = sender()
+          conn.post(aql).map {
+            response =>
+              val jsons = Json.parse("[ " + response.body.replaceAll(" \\]\n\\[", " \\],\n\\[") + " ] ").asInstanceOf[JsArray]
+              curSender ! packageResult("AppUsage", "map", query.scale, jsons.value(0))
+            //              curSender ! packageResult("time", query.scale, jsons.value(1))
+          }
       }
+
+
   }
 }
 
 object DBActor {
   val Dataverse = "hackathon"
   val SignalDataSet = "sigcube"
-  val TimeField = "start_time"
+  val SignalTimeField = "start_time"
   val CDMA = "cdma"
   val EVDO = "evdo"
   val GSM = "gsm"
@@ -36,10 +51,16 @@ object DBActor {
   val WCDMA = "wcdma"
   val AllCarrier = Seq(CDMA, EVDO, GSM, LTE, WCDMA)
 
+  val AppUsageDataSet = "sig_app"
+  val AppUsageTimeField = "app_start_time"
+  val AppUsageLocationField = "location"
+  val AppUsageGeoField = "geo_tag"
+
   import models.Formatter._
-  def packageResult(dimension: String, scale: MapTimeScale, results: JsValue): JsObject = {
+
+  def packageResult(queryType: String, dimension: String, scale: MapTimeScale, results: JsValue): JsObject = {
     JsObject(Seq(
-      "type" -> JsString("Signal"),
+      "type" -> JsString(queryType),
       "dimension" -> JsString(dimension),
       "scale" -> Json.toJson(scale),
       "results" -> results).toMap
@@ -62,17 +83,21 @@ object DBActor {
 
   val TimeFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
-  def generateMapAQL(query: MapQuery): String = {
-    val predicate =
-      s"""
-         |($$t.$TimeField >= datetime("${TimeFormat.print(query.time.getStart)}")
-         |and $$t.$TimeField < datetime("${TimeFormat.print(query.time.getEnd)}"))
-         |""".stripMargin
+  def getPredicate(timeField: String, interval: Interval) =
+    s"""
+       |($$t.$timeField >= datetime("${TimeFormat.print(interval.getStart)}")
+       |and $$t.$timeField < datetime("${TimeFormat.print(interval.getEnd)}"))
+       |""".stripMargin
 
-    val geoField = query.scale.spatial match {
-      case Boro => "boro_id"
-      case Neighbor => "nid"
-    }
+  def geoField(scale: MapTimeScale) = scale.spatial match {
+    case Boro => "boro_id"
+    case Neighbor => "nid"
+  }
+
+  def generateSignalMapAQL(query: MapQuery): String = {
+    val predicate = getPredicate(SignalTimeField, query.time)
+
+
     val common =
       s"""
          |let $$common := (
@@ -82,36 +107,89 @@ object DBActor {
          |)
          |""".stripMargin
     val byTime =
-      s"""print-datetime($$t.$TimeField, "YYYY-MM-DD hh")""".stripMargin
+      s"""print-datetime($$t.$SignalTimeField, "YYYY-MM-DD hh")""".stripMargin
 
-    query.queryType match {
-      case QueryType.Signal =>
-        s"""
-           |use dataverse $Dataverse
-           |
-           |$common
-           |for $$t in $$common
-           |group by $$c:=$$t.$geoField with $$t
-           |return {
-           |  "key": string($$c),
-           |  "summary": {
-           |  ${AllCarrier.map(pairAggr).mkString(",")}
-           |  }
-           |};
-           |
-           |$common
-           |for $$t in $$common
-           |group by $$c:= $byTime with $$t
-           |return {
-           |  "key": $$c,
-           |  "summary": {
-           |  ${AllCarrier.map(pairAggr).mkString(",")}
-           |  }
-           |}
-           |
+    s"""
+       |use dataverse $Dataverse
+       |
+       |$common
+       |for $$t in $$common
+       |group by $$c:=$$t.${geoField(query.scale)} with $$t
+       |return {
+       |  "key": string($$c),
+       |  "summary": {
+       |  ${AllCarrier.map(pairAggr).mkString(",")}
+       |  }
+       |};
+       |
+       |$common
+       |for $$t in $$common
+       |group by $$c:= $byTime with $$t
+       |return {
+       |  "key": $$c,
+       |  "summary": {
+       |  ${AllCarrier.map(pairAggr).mkString(",")}
+       |  }
+       |}
+       |
          """.stripMargin
-      case QueryType.AppUsage => ???
+
+  }
+
+  def generateAppUsageAQL(query: MapQuery): String = {
+    val predicate = getPredicate(AppUsageTimeField, query.time)
+    val common =
+      s"""
+         |let $$common := (
+         |  for $$t in dataset $AppUsageDataSet
+         |  where $predicate
+         |  return $$t
+         |)
+       """.stripMargin
+    val geoField = query.scale.spatial match {
+      case Boro => "boroCode"
+      case Neighbor => "neighborID"
     }
+
+    s"""
+       |use dataverse $Dataverse
+       |
+       |$common
+       |for $$t in $$common
+       |group by $$c := $$t.$AppUsageGeoField.$geoField with $$t
+       |return {
+       |  "key" : $$c,
+       |  "summary": {
+       |    "b" :
+       |          ( for $$x in $$t
+       |                where $$x.app_usage_type = 4
+       |                group by $$app:= $$x.app_name, $$icon := $$x.icon with $$x
+       |                let $$count := count($$x)
+       |                order by $$count desc
+       |                limit 1
+       |                return {
+       |                  "app": $$app,
+       |                  "icon": $$icon,
+       |                  "count": $$count
+       |                }
+       |           )[0],
+       |    "f" : ( for $$x in $$t
+       |                where $$x.app_usage_type = 5
+       |                group by $$app:= $$x.app_name, $$icon := $$x.icon with $$x
+       |                let $$count := count($$x)
+       |                order by $$count desc
+       |                limit 1
+       |                return {
+       |                  "app": $$app,
+       |                  "icon": $$icon,
+       |                  "count": $$count
+       |                }
+       |           )[0]
+       |  }
+       |}
+       |
+       |
+       |""".stripMargin
   }
 
 }
