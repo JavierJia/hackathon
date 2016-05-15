@@ -22,6 +22,8 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       },
       geojsonData: {},
       polygons: {},
+      boroIcon: {},
+      neighborIcon: {},
       status:{
         zoomLevel: 10,
         logicLevel: 'boro'
@@ -166,7 +168,6 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       loadGeoJsonFiles(onEachFeature);
 
     }
-
     // load geoJson
     function loadGeoJsonFiles(onEachFeature) {
       $http.get("assets/resources/data/1.geojson")
@@ -177,9 +178,24 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             onEachFeature: onEachFeature
           });
           $scope.polygons.boroPolygons.addTo($scope.map);
-          angular.forEach(data, function (d) {
-            console.log(d);
-          })
+          $scope.boroCenter = {};
+          angular.forEach(data.features, function (d) {
+            var sumLat = 0;
+            var sumLng = 0;
+            var Cnt = 0;
+            for(var i=0; i < d.geometry.coordinates[0].length; i++) {
+              sumLat += parseFloat(d.geometry.coordinates[0][i][1]);
+              sumLng += parseFloat(d.geometry.coordinates[0][i][0]);
+              Cnt += 1;
+            }
+            $scope.boroCenter[d.properties.id] = {lat: parseFloat(sumLat)/Cnt, lng:parseFloat(sumLng)/Cnt};
+            $scope.boroIcon[d.properties.id] = L.icon({
+              iconUrl: '',
+              iconSize:     [50, 50], // size of the icon
+              iconAnchor:   [25, 25], // point of the icon which will correspond to marker's location
+              popupAnchor:  [-25, -25] // point from which the popup should open relative to the iconAnchor
+            });
+          });
         })
         .error(function(data) {
           console.log("Load boro data failure");
@@ -190,6 +206,24 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
           $scope.polygons.neighborPolygons = L.geoJson(data, {
             style: $scope.styles.neighborStyle,
             onEachFeature: onEachFeature
+          });
+          $scope.neighorCenter = {};
+          angular.forEach(data.features, function (d) {
+            var sumLat = 0;
+            var sumLng = 0;
+            var Cnt = 0;
+            for(var i=0; i< d.geometry.coordinates[0].length; i++) {
+              sumLat += parseFloat(d.geometry.coordinates[0][i][1]);
+              sumLng += parseFloat(d.geometry.coordinates[0][i][0]);
+              Cnt += 1;
+            }
+            $scope.neighorCenter[d.properties.id] = {lat: parseFloat(sumLat)/Cnt, lng:parseFloat(sumLng)/Cnt};
+            $scope.neighborIcon[d.properties.id] = L.icon({
+              iconUrl: '',
+              iconSize:     [38, 38], // size of the icon
+              iconAnchor:   [19, 19], // point of the icon which will correspond to marker's location
+              popupAnchor:  [-19, -19] // point from which the popup should open relative to the iconAnchor
+            });
           });
         })
         .error(function(data) {
@@ -214,6 +248,34 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             break;
           case "f":
             return data.f.count;
+            break;
+        }
+      };
+
+      var getName = function (data, type) {
+        switch (type) {
+          case "b":
+            return data.b.app;
+            break;
+          case "f":
+            return data.f.app;
+            break;
+        }
+      };
+
+      var getIconUrl = function (data, type) {
+        switch (type) {
+          case "b":
+            if(data.b.icon != "NULL")
+              return "http:"+data.b.icon;
+            else
+              return "http://www.androidpolice.com/wp-content/themes/ap2/ap_resize/ap_resize.php?src=http%3A%2F%2Fwww.androidpolice.com%2Fwp-content%2Fuploads%2F2015%2F03%2Fnexus2cee_an-150x150.png&w=150&h=150&zc=3";
+            break;
+          case "f":
+            if(data.f.icon != "NULL")
+              return "http:"+data.f.icon;
+            else
+              return "http://www.androidpolice.com/wp-content/themes/ap2/ap_resize/ap_resize.php?src=http%3A%2F%2Fwww.androidpolice.com%2Fwp-content%2Fuploads%2F2015%2F03%2Fnexus2cee_an-150x150.png&w=150&h=150&zc=3";
             break;
         }
       }
@@ -264,30 +326,57 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       // update count
       if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
+        for(var key in $scope.neighborIcon) {
+          if($scope.neighborIcon.hasOwnProperty(key)) {
+            console.log($scope.map.hasLayer($scope.neighborIcon[key]))
+            if ($scope.map.hasLayer($scope.neighborIcon[key])) {
+              $scope.map.removeLayer($scope.neighborIcon[key]);
+            }
+          }
+        }
         angular.forEach($scope.geojsonData.boro.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
-            if (result[k].key == d.properties.id)
+            if (result[k].key == d.properties.id) {
+              $scope.boroIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
+              $scope.addLayer(L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb)));
               d.properties.count = getCount(result[k].summary, $scope.config.fb);
+            }
           }
         });
 
         // draw
         $scope.polygons.boroPolygons.setStyle(style);
+
+
       } else if ($scope.status.logicLevel == "neighbor" && $scope.geojsonData.neighbor) {
+        for(var key in $scope.boroIcon) {
+          if($scope.boroIcon.hasOwnProperty(key)) {
+            console.log($scope.map.hasLayer($scope.boroIcon[key]))
+            if ($scope.map.hasLayer($scope.boroIcon[key])) {
+              $scope.map.removeLayer($scope.boroIcon[key]);
+            }
+          }
+        }
         angular.forEach($scope.geojsonData.neighbor.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
-            if (result[k].key == d.properties.id)
+            if (result[k].key == d.properties.id) {
+              $scope.neighborIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
+              $scope.map.addLayer(L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb)));
               d.properties.count = getCount(result[k].summary, $scope.config.fb);
+            }
           }
         });
 
         // draw
         $scope.polygons.neighborPolygons.setStyle(style);
+
+
+
       }
       // add legend
       if ($('.legend'))
