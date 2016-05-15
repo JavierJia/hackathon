@@ -32,7 +32,7 @@ class DBActor(val conn: AsterixConnection)(implicit ec: ExecutionContext) extend
             response =>
               val jsons = Json.parse("[ " + response.body.replaceAll(" \\]\n\\[", " \\],\n\\[") + " ] ").asInstanceOf[JsArray]
               curSender ! packageResult("AppUsage", "map", query.scale, jsons.value(0))
-            //              curSender ! packageResult("time", query.scale, jsons.value(1))
+              curSender ! packageResult("AppUsage", "time", query.scale, jsons.value(1))
           }
       }
 
@@ -145,11 +145,26 @@ object DBActor {
          |  where $predicate
          |  return $$t
          |)
-       """.stripMargin
+         |""".stripMargin
     val geoField = query.scale.spatial match {
       case Boro => "boroCode"
       case Neighbor => "neighborID"
     }
+    val byTime =
+      s"""print-datetime($$t.$AppUsageTimeField, "YYYY-MM-DD hh")""".stripMargin
+
+    val timeCommon =
+      s"""
+         |let $$apps := [ "Chrome Browser - Google", "Facebook", "Gmail", "Google Play Store", "Maps",
+         |               "Instagram", "YouTube", "WhatsApp Messenger", "Messenger", "Snapchat" ]
+         |let $$common := (
+         |  for $$t in dataset $AppUsageDataSet
+         |  where $predicate
+         |  for $$app in $$apps
+         |  where $$t.app_name = $$app
+         |  return $$t
+         |)
+         |""".stripMargin
 
     s"""
        |use dataverse $Dataverse
@@ -188,6 +203,28 @@ object DBActor {
        |  }
        |}
        |
+       |$timeCommon
+       |for $$t in $$common
+       |group by $$c := $byTime with $$t
+       |return {
+       |  "key" : $$c,
+       |  "summary" : {
+       |    "b" :
+       |          ( for $$x in $$t
+       |              where $$x.app_usage_type = 4
+       |              group by $$app:= $$x.app_name with $$x
+       |              let $$count := count($$x)
+       |              return { "app" : $$app, "count": $$count }
+       |           ),
+       |    "f" : ( for $$x in $$t
+       |              where $$x.app_usage_type = 5
+       |              group by $$app:= $$x.app_name with $$x
+       |              let $$count := count($$x)
+       |              return { "app" : $$app, "count": $$count }
+       |           )
+       |  }
+       |
+       |}
        |
        |""".stripMargin
   }
