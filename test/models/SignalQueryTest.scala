@@ -27,7 +27,7 @@ class SignalQueryTest extends Specification with TestData{
           "end" -> JsNumber(interval.getEnd.getMillis)
         ))
       ))
-      signalQueryJson.as[SignalQuery] must_== signalQuery
+      signalQueryJson.as[MapQuery] must_== signalQuery
     }
   }
 }

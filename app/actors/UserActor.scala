@@ -3,7 +3,7 @@ package actors
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
 import akka.util.Timeout
-import models.{QueryResult, SignalQuery}
+import models.{QueryResult, MapQuery}
 import play.api.libs.json._
 
 import scala.concurrent.duration._
@@ -25,7 +25,7 @@ class UserActor(val out: ActorRef, val dbActor: ActorRef) extends Actor with Act
     case other =>
   }
 
-  def parseQuery(json: JsValue) = json.as[SignalQuery]
+  def parseQuery(json: JsValue) = json.as[MapQuery]
 }
 
 object UserActor {

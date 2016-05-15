@@ -1,6 +1,6 @@
 angular.module('hackathon.common', [])
   .service('Asterix', function($http, $timeout) {
-    var startDate = new Date(2015, 9, 1, 0, 0, 0, 0);
+    var startDate = new Date(2015, 8, 1, 0, 0, 0, 0);
     var endDate = new Date();
     var ws = new WebSocket("ws://localhost:9000/ws");
     var asterixService = {
