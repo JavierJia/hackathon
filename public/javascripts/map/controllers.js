@@ -23,7 +23,6 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       geojsonData: {},
       polygons: {},
       status:{
-        init: true,
         zoomLevel: 10,
         logicLevel: 'boro'
       },
@@ -65,10 +64,6 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
 
       setInfoControl();
       $scope.$on("leafletDirectiveMap.zoomend", function() {
-        if($scope.status.init) {
-          $scope.status.init = false;
-          setTimeout(function(){},100);
-        }
         if ($scope.map) {
           $scope.status.zoomLevel = $scope.map.getZoom();
           $scope.bounds = $scope.map.getBounds();
