@@ -1,18 +1,15 @@
 package models
 
 import org.joda.time.Interval
-import play.api.libs.json.Json
 
 object QueryType extends Enumeration {
+  type QueryType = Value
   val Signal, AppUsage = Value
 }
 
-case class UserQuery(userType: QueryType.Value, area: Rectangle, time: Interval)
+case class SpatialTimeScale(spatial: ChoroplethScale, time: TimeScale)
 
-case class DBQuery(aql: String)
+case class SignalQuery(queryType: QueryType.Value, scale: SpatialTimeScale, area: Rectangle, time: Interval)
 
 case class Rectangle(swLog: Double, swLat: Double, neLog: Double, neLat: Double)
 
-object Rectangle {
-  implicit val rectangularFormat = Json.format[Rectangle]
-}
