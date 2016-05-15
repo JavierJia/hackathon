@@ -191,9 +191,9 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             $scope.boroCenter[d.properties.id] = {lat: parseFloat(sumLat)/Cnt, lng:parseFloat(sumLng)/Cnt};
             $scope.boroIcon[d.properties.id] = L.icon({
               iconUrl: '',
-              iconSize:     [50, 50], // size of the icon
-              iconAnchor:   [25, 25], // point of the icon which will correspond to marker's location
-              popupAnchor:  [-25, -25] // point from which the popup should open relative to the iconAnchor
+              iconSize:     [38, 38], // size of the icon
+              iconAnchor:   [19, 19], // point of the icon which will correspond to marker's location
+              popupAnchor:  [-19, -19] // point from which the popup should open relative to the iconAnchor
             });
           });
         })
@@ -282,8 +282,8 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       // find max/min weight
       angular.forEach(result, function(value, key) {
-        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.fb));
-        minWeight = Math.min(minWeight, getCount(value.summary, $scope.config.fb));
+        maxWeight = Math.max(maxWeight, getCount(value.summary, $scope.config.fb.fb));
+        minWeight = Math.min(minWeight, getCount(value.summary, $scope.config.fb.fb));
 
       });
 
@@ -328,7 +328,6 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
         for(var key in $scope.neighborIcon) {
           if($scope.neighborIcon.hasOwnProperty(key)) {
-            console.log($scope.neighborIcon[key])
             if ($scope.map.hasLayer($scope.neighborIcon[key])) {
               $scope.map.removeLayer($scope.neighborIcon[key]);
             }
@@ -340,9 +339,9 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
           for (var k in result) {
             //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id) {
-              $scope.boroIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
-              L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb));
-              d.properties.count = getCount(result[k].summary, $scope.config.fb);
+              $scope.boroIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb.fb);
+              L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb.fb));
+              d.properties.count = getCount(result[k].summary, $scope.config.fb.fb);
             }
           }
         });
@@ -364,9 +363,9 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
             d.properties.count = 0;
           for (var k in result) {
             if (result[k].key == d.properties.id) {
-              $scope.neighborIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb);
-              L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb));
-              d.properties.count = getCount(result[k].summary, $scope.config.fb);
+              $scope.neighborIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb.fb);
+              L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb.fb));
+              d.properties.count = getCount(result[k].summary, $scope.config.fb.fb);
             }
           }
         });
@@ -418,10 +417,10 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
         data: "="
       },
       template:[
-        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="550" ng-init="init()"></leaflet>'
+        '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="1170" height="500" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.$watchGroup(['data', 'config.fb'], function(newVal, oldVal) {
+        $scope.$watchGroup(['data', 'config.fb.fb'], function(newVal, oldVal) {
             $scope.drawMap($scope.data);
           }
         );
