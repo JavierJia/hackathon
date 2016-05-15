@@ -18,8 +18,8 @@
     @play20.welcome(message, style = "Scala")
     <div class="container" ng-app="hackathon" ng-controller="AppCtrl">
         <div class="row">
-            <div id="search-bar" class="container" ng-controller="SelectCtrl">
-                <form class="form-horizontal" ng-submit="search()" ng-init="init()">
+            <div id="search-bar" class="container">
+                <form class="form-horizontal">
                     <select id="carrier-select" class="form-control" ng-model="selection.carrier">
                         <option>cdma</option>
                         <option>evdo</option>
@@ -31,7 +31,6 @@
                         <option>dbm</option>
                         <option>level</option>
                     </select>
-                    <button type="submit" class="btn btn-primary" id="submit-button">Submit</button>
                 </form>
             </div>
         </div>

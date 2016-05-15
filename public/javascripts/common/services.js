@@ -18,7 +18,7 @@ angular.module('cloudberry.common', [])
           end: endDate
         },
         scale: {
-          time: "day",
+          time: "hour",
           map: "neighbor"
         },
       },
@@ -38,7 +38,9 @@ angular.module('cloudberry.common', [])
       signalMapResult: {},
       signalTimeResult: {},
       appMapResult: {},
-      appTimeResult: {}
+      appTimeResult: {},
+
+      isTimeQuery: false
     };
 
     ws.onmessage = function(event) {

@@ -1,31 +1,45 @@
 angular.module('hackathon.timeseries', ['hackathon.common'])
   .controller('TimeSeriesCtrl', function ($scope, $window, Asterix) {
-    $scope.result = {};
-    $scope.resultArray = [];
     $scope.d3 = $window.d3;
     $scope.dc = $window.dc;
     $scope.crossfilter = $window.crossfilter;
-    $scope.preProcess = function (result) {
-      var parseDate = d3.time.format("%Y-%m-%d").parse;
-      var result_array = [];
+
+
+    $scope.preProcess = function (result, type) {
+      $scope.resultArray = [];
+      var parseDate = d3.time.format("%Y-%m-%d %H").parse;
       angular.forEach(result, function (value, key) {
         key = parseDate(value.key);
-        value = +value.count;
-        result_array.push({'time':key, 'count':value});
+        switch (type) {
+          case "strength":
+            $scope.resultArray.push(
+              {
+                'time':key,
+                'cdma':value.cdma.strength,
+                'evdo': value.evdo.strength,
+                'gsm': value.gsm.strength,
+                'lte': value.lte.strength,
+                'wcdma': value.wcdma.strength
+              });
+            break;
+          case "quality":
+            $scope.resultArray.push(
+              {
+                'time':key,
+                'cdma':value.cdma.quality,
+                'evdo': value.evdo.quality,
+                'gsm': value.gsm.quality,
+                'lte': value.lte.quality,
+                'wcdma': value.wcdma.quality
+              });
+            break;
+        };
       });
-      return result_array;
     };
-    $scope.$watch(
-      function() {
-        return Asterix.timeResult;
-      },
-
-      function(newResult) {
-        if(newResult.type != $scope.config.type)
-          return;
-        if(newResult && Asterix.queryType != 'time') {
-          $scope.result = newResult;
-          $scope.resultArray = $scope.preProcess(newResult);
+    $scope.$watchGroup(['$scope.data', '$scope.config.selection.type'],
+      function(newVal, oldVal) {
+        if((newVal && !Asterix.isTimeQuery) || newVal[1] != oldVal[1]) {
+          $scope.preProcess($scope.data, $scope.conf.type);
         }
       }
     );
@@ -37,10 +51,14 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
       bottom: 30,
       left: 50
     };
-    var width = $(window).width() - margin.left - margin.right;
-    var height = 150 - margin.top - margin.bottom;
+    var width = $scope.config.width - margin.left - margin.right;
+    var height = $scope.config.height - margin.top - margin.bottom;
     return {
       restrict: "E",
+      scope: {
+        config: "=",
+        data: "="
+      },
       controller: 'TimeSeriesCtrl',
       link: function ($scope, $element, $attrs) {
         var chart = d3.select($element[0]);
@@ -55,16 +73,33 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             var extent = timeBrush.extent();
             Asterix.parameters.time.start = extent[0];
             Asterix.parameters.time.end = extent[1];
-            Asterix.queryType = 'time';
-            Asterix.query(Asterix.parameters, Asterix.queryType);
+            Asterix.parameters.scale.time = "hour";
+            Asterix.isTimeQuery = true;
+            Asterix.query(Asterix.parameters);
           });
 
           var ndx = crossfilter(newVal);
           var timeDimension = ndx.dimension(function (d) {
             if (d.time != null) return d.time;
           })
-          var timeGroup = timeDimension.group().reduceSum(function (d) {
-            return d.count;
+          var cdmaGroup = timeDimension.group().reduceSum(function (d) {
+            return d.cdma;
+          });
+
+          var evdoGroup = timeDimension.group().reduceSum(function (d) {
+            return d.evdo;
+          });
+
+          var gsmGroup = timeDimension.group().reduceSum(function (d) {
+            return d.gsm;
+          });
+
+          var lteGroup = timeDimension.group().reduceSum(function (d) {
+            return d.lte;
+          });
+
+          var wcdmaGroup = timeDimension.group().reduceSum(function (d) {
+            return d.wcdma;
           });
 
           var minDate = timeDimension.bottom(1)[0].time;
@@ -80,7 +115,11 @@ angular.module('hackathon.timeseries', ['hackathon.common'])
             .height(height)
             .margins(margin)
             .dimension(timeDimension)
-            .group(timeGroup)
+            .group(cdmaGroup)
+            .stack(evdoGroup)
+            .stack(gsmGroup)
+            .stack(lteGroup)
+            .stack(wcdmaGroup)
             .x(d3.time.scale().domain([minDate, maxDate]));
 
           dc.renderAll();

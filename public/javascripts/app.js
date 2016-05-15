@@ -5,23 +5,17 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     carrier: "cdma",
     type: "strength"
   };
+
   $scope.signalMapConf = {
-    mapType: "Signal",
     width : $(window).width(),
     height: $(window).height()*0.4,
     selection: $scope.selection
   };
-  
-  $scope.timeseries_width = $(window).width();
-  $scope.timeseries_height = $(window).height()*0.2;
-});
 
-app.controller("SelectCtrl", function ($scope) {
-  $scope.init = function () {
-    
+  $scope.signalTimeConf = {
+    width: $(window).width(),
+    height: 150,
+    selection: $scope.selection
   };
   
-  $scope.search = function () {
-    
-  }
-})
+});

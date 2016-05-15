@@ -70,6 +70,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           Asterix.parameters.area.neLat = $scope.bounds._northEast.lat;
           Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
           Asterix.parameters.queryType = $scope.config.queryType;
+          Asterix.isTimeQuery = false;
           if ($scope.status.zoomLevel > 5) {
             $scope.status.logicLevel = 'county';
             Asterix.parameters.scale.map = $scope.status.logicLevel;
@@ -96,6 +97,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       //   Asterix.parameters.area.neLog = $scope.bounds._northEast.lng;
       //   Asterix.parameters.scale.map = $scope.status.logicLevel;
       //   Asterix.parameters.queryType = $scope.config.queryType;
+      //   Asterix.isTimeQuery = false;
       //   Asterix.query(Asterix.parameters);
       // });
     };
@@ -241,8 +243,8 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
       }
 
       // find max/min weight
-      angular.forEach(result, function(data) {
-        maxWeight = Math.max(maxWeight, getCount(data, $scope.config.selection.carrier, $scope.config.selection.type));
+      angular.forEach(result, function(value, key) {
+        maxWeight = Math.max(maxWeight, getCount(value, $scope.config.selection.carrier, $scope.config.selection.type));
       });
 
       var range = maxWeight - minWeight;
@@ -301,7 +303,6 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
-            //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.countyID)
               d.properties.count = result[k].count;
           }
@@ -354,7 +355,7 @@ angular.module('hackathon.map', ['leaflet-directive', 'hackathon.common'])
         '<leaflet lf-center="center" tiles="tiles" events="events" controls="controls" width="$scope.config.width" height="$scope.config.height" ng-init="init()"></leaflet>'
       ].join(''),
       link: function ($scope, $element, $attrs) {
-        $scope.watch([$scope.data, $scope.config], function() {
+        $scope.watchGroup([$scope.data, $scope.config], function(newVal, oldVal) {
             if (Object.keys($scope.data).length != 0) {
               drawMap($scope.data);
             }
