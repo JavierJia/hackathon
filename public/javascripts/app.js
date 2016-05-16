@@ -30,7 +30,7 @@ app.controller("AppCtrl", function ($scope, Asterix) {
   });
 
   $scope.signalTimeConf = {
-    width: $(window).width()*0.8,
+    width: $(window).width()*0.7,
     height: 200,
     selection: $scope.selection
   };

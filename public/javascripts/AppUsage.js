@@ -28,7 +28,7 @@ app.controller("AppCtrl", function ($scope, Asterix) {
     });
 
   $scope.appTimeConf = {
-    width: $(window).width()*0.8,
+    width: $(window).width()*0.7,
     height: 250,
     fb: $scope.fb
   };
