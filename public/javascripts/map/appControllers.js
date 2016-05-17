@@ -328,6 +328,8 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
         if($scope.map.hasLayer($scope.neighborMarkerLayer))
             $scope.map.removeLayer($scope.neighborMarkerLayer);
+        if($scope.map.hasLayer($scope.boroMarkerLayer))
+          $scope.map.removeLayer($scope.boroMarkerLayer);
         $scope.boroMarker = [];
         angular.forEach($scope.geojsonData.boro.features, function(d) {
           if (d.properties.count)
@@ -349,6 +351,8 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
       } else if ($scope.status.logicLevel == "neighbor" && $scope.geojsonData.neighbor) {
         if($scope.map.hasLayer($scope.boroMarkerLayer))
           $scope.map.removeLayer($scope.boroMarkerLayer);
+        if($scope.map.hasLayer($scope.neighborMarkerLayer))
+          $scope.map.removeLayer($scope.neighborMarkerLayer);
         $scope.neighborMarker = [];
         angular.forEach($scope.geojsonData.neighbor.features, function(d) {
           if (d.properties.count)
