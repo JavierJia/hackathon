@@ -326,55 +326,45 @@ angular.module('hackathon.appMap', ['leaflet-directive', 'hackathon.common'])
 
       // update count
       if ($scope.status.logicLevel == "boro" && $scope.geojsonData.boro) {
-        for(var key in $scope.neighborIcon) {
-          if($scope.neighborIcon.hasOwnProperty(key)) {
-            if ($scope.map.hasLayer($scope.neighborIcon[key])) {
-              $scope.map.removeLayer($scope.neighborIcon[key]);
-            }
-          }
-        }
+        if($scope.map.hasLayer($scope.neighborMarkerLayer))
+            $scope.map.removeLayer($scope.neighborMarkerLayer);
+        $scope.boroMarker = [];
         angular.forEach($scope.geojsonData.boro.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
-            //TODO make a hash map from ID to make it faster
             if (result[k].key == d.properties.id) {
               $scope.boroIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb.fb);
-              L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb.fb));
+              $scope.boroMarker.push(L.marker([$scope.boroCenter[result[k].key].lat,$scope.boroCenter[result[k].key].lng] , {icon: $scope.boroIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb.fb)));
               d.properties.count = getCount(result[k].summary, $scope.config.fb.fb);
             }
           }
         });
-
+        $scope.boroMarkerLayer = L.layerGroup($scope.boroMarker);
         // draw
         $scope.polygons.boroPolygons.setStyle(style);
+        $scope.map.addLayer($scope.boroMarkerLayer);
 
 
       } else if ($scope.status.logicLevel == "neighbor" && $scope.geojsonData.neighbor) {
-        for(var key in $scope.boroIcon) {
-          if($scope.boroIcon.hasOwnProperty(key)) {
-            if ($scope.map.hasLayer($scope.boroIcon[key])) {
-              $scope.map.removeLayer($scope.boroIcon[key]);
-            }
-          }
-        }
+        if($scope.map.hasLayer($scope.boroMarkerLayer))
+          $scope.map.removeLayer($scope.boroMarkerLayer);
+        $scope.neighborMarker = [];
         angular.forEach($scope.geojsonData.neighbor.features, function(d) {
           if (d.properties.count)
             d.properties.count = 0;
           for (var k in result) {
             if (result[k].key == d.properties.id) {
               $scope.neighborIcon[result[k].key].options.iconUrl = getIconUrl(result[k].summary, $scope.config.fb.fb);
-              L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).addTo($scope.map).bindPopup(getName(result[k].summary, $scope.config.fb.fb));
+              $scope.neighborMarker.push(L.marker([$scope.neighorCenter[result[k].key].lat,$scope.neighorCenter[result[k].key].lng] , {icon: $scope.neighborIcon[result[k].key]}).bindPopup(getName(result[k].summary, $scope.config.fb.fb)));
               d.properties.count = getCount(result[k].summary, $scope.config.fb.fb);
             }
           }
         });
-
+        $scope.neighborMarkerLayer = L.layerGroup($scope.neighborMarker);
         // draw
         $scope.polygons.neighborPolygons.setStyle(style);
-
-
-
+        $scope.map.addLayer($scope.neighborMarkerLayer);
       }
       // add legend
       if ($('.legend'))
