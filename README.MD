@@ -19,6 +19,6 @@ Then you can open your browser to checkout the two apps
 ![App Usage](/public/screenshots/appusage.png?raw=true "Most popular app for different neighborhood")
 ![Backgroud App](/public/screenshots/appusage-bg.png?raw=true "Distribution of the Backgound App")
 
-
-
+The final pitch ppt is [here](https://docs.google.com/presentation/d/1nLOMq0aH2IWtdfdfFy9qgqfMzK7uTod8ij07-7pejIo/edit?usp=sharing)
+A video demo is on [vimeo](https://vimeo.com/167025700)
 
