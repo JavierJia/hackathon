@@ -4,7 +4,11 @@ Matrix Reload
 Matrix Reload is the Hackathon project built by the fabulous [Full Stack](https://www.instagram.com/p/BFevlvngIik/) Team for the
 [UCI Data Hackathon](ucidatahackathon.com)
 
-You can run this demo by the following command line
+You can find the pitch ppt [here](https://docs.google.com/presentation/d/1nLOMq0aH2IWtdfdfFy9qgqfMzK7uTod8ij07-7pejIo/edit?usp=sharing)
+
+We also created a video on [Youtube](https://youtu.be/GOu-TqTaigs)
+
+To try this demo on your local machine, you can start the server by the following command
 
 ```
 sbt run
@@ -18,6 +22,4 @@ Then you can open your browser to checkout the two apps
 2. Interactive App Usage Temporal-Spatial visualization demo on localhost:9000/app
 ![App Usage](/public/screenshots/appusage.png?raw=true "Most popular app for different neighborhood")
 
-You can find the pitch ppt [here](https://docs.google.com/presentation/d/1nLOMq0aH2IWtdfdfFy9qgqfMzK7uTod8ij07-7pejIo/edit?usp=sharing)
-We also created a video on [vimeo](https://vimeo.com/167025700)
 
